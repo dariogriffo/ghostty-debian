@@ -1,0 +1,11 @@
+# Ghostty source
+ghostty-*.tar.gz
+ghostty-*.*.*/
+
+# .deb Packages
+*.deb
+
+.idea/*
+.DS_Store
+
+

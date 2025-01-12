@@ -1,0 +1,55 @@
+name: Build Ghostty for Debian
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: The version to release.
+        type: string
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build-ghostty:
+    name: Build
+    runs-on: ubuntu-latest    
+    steps:
+      - name: Checkout ghostty-debian
+        uses: actions/checkout@v4
+
+      - name: Build Ghostty
+        run: ./build_ghostty_debian.sh
+      
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifact
+          path: ghostty_*.deb
+
+
+  release-ghostty:
+    name: (Draft-)Release Ghostty for Debian
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    needs: build-ghostty
+    steps:
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: artifact
+
+      - name: Publish Release Draft
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          files: ghostty_*.deb
+          name: ${{ inputs.release_version }}
+          tag_name: ${{ env.RELEASE_TAG }}
+          fail_on_unmatched_files: true
+
