@@ -26,9 +26,9 @@ install on Debian. If you're looking for the Ghostty source code, see
 ## Manual Installation
 
 1. Download the .deb package for your Debian version. (Also available on the [Releases](https://github.com/dariogriffo/ghostty-debian/releases) page.)
-   - **Debian bookworm:** [ghostty_1.0.1-1~bookworm_amd64.deb](https://github.com/dariogriffo/ghostty-debian/releases/download/1.0.1/ghostty_1.0.1-1~bookworm_amd64.deb)
-   - **Debian trixie:** [ghostty_1.0.1-1~trixie_amd64.deb](https://github.com/dariogriffo/ghostty-debian/releases/download/1.0.1/ghostty_1.0.1-1~trixie_amd64.deb)
-   - **Debian sid:** [ghostty_1.0.1-1~sid_amd64.deb](https://github.com/dariogriffo/ghostty-debian/releases/download/1.0.1/ghostty_1.0.1.amd64_sid.deb)
+   - **Debian bookworm:** [ghostty_1.0.1-1.bookworm_amd64.deb]https://github.com/dariogriffo/ghostty-debian/releases/download/1.0.1/ghostty_1.0.1-1.bookworm_amd64.deb
+   - **Debian trixie:** [ghostty_1.0.1-1.trixie_amd64.deb]https://github.com/dariogriffo/ghostty-debian/releases/download/1.0.1/ghostty_1.0.1-1.trixie_amd64.deb
+   - **Debian sid:** [ghostty_1.0.1-1.sid_amd64.deb]https://github.com/dariogriffo/ghostty-debian/releases/download/1.0.1/ghostty_1.0.1-1.sid_amd64.deb
 2. Install the downloaded .deb package.
 
    ```sh
