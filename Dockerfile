@@ -3,27 +3,18 @@ FROM debian:$DEBIAN_DIST
 
 ARG DEBIAN_DIST
 ARG GHOSTTY_VERSION
-
-RUN mkdir ghosty
+ARG BUILD_VERSION
+ARG FULL_VERSION
 
 ENV ZIG_VERSION=0.13.0
-ENV RELEASE_VERSION=1
-ENV FULL_VERSION=$GHOSTTY_VERSION-${RELEASE_VERSION}~${DEBIAN_DIST}_amd64
-
 
 RUN apt update && apt install -y build-essential debhelper devscripts pandoc libonig-dev libbz2-dev wget libgtk-4-dev libadwaita-1-dev minisign
-
-
 RUN wget -q "https://ziglang.org/download/$ZIG_VERSION/zig-linux-x86_64-$ZIG_VERSION.tar.xz" && tar -xf "zig-linux-x86_64-$ZIG_VERSION.tar.xz" -C /opt && rm "zig-linux-x86_64-$ZIG_VERSION.tar.xz" && ln -s "/opt/zig-linux-x86_64-$ZIG_VERSION/zig" /usr/local/bin/zig
-
 RUN wget -q "https://release.files.ghostty.org/$GHOSTTY_VERSION/ghostty-$GHOSTTY_VERSION.tar.gz"
 RUN wget -q "https://release.files.ghostty.org/$GHOSTTY_VERSION/ghostty-$GHOSTTY_VERSION.tar.gz.minisig"
-
 RUN minisign -Vm "ghostty-$GHOSTTY_VERSION.tar.gz" -P RWQlAjJC23149WL2sEpT/l0QKy7hMIFhYdQOFy0Z7z7PbneUgvlsnYcV
-
 RUN rm ghostty-$GHOSTTY_VERSION.tar.gz.minisig
 RUN tar -xzmf "ghostty-$GHOSTTY_VERSION.tar.gz"
-
 WORKDIR "ghostty-$GHOSTTY_VERSION" 
 
 RUN sed -i 's/linkSystemLibrary2("bzip2", dynamic_link_opts)/linkSystemLibrary2("bz2", dynamic_link_opts)/' build.zig
@@ -39,6 +30,9 @@ COPY output/copyright /output/copyright
 RUN cp -R ./zig-out/** /output/
 
 RUN sed -i "s/DIST/$DEBIAN_DIST/" /output/changelog.Debian
+RUN sed -i "s/DIST/$DEBIAN_DIST/" /output/DEBIAN/control
+RUN sed -i "s/GHOSTTY_VERSION/$GHOSTTY_VERSION/" /output/DEBIAN/control
+RUN sed -i "s/BUILD_VERSION/$BUILD_VERSION/" /output/DEBIAN/control
 
 RUN mkdir -p /output/usr/share/doc/ghostty/
 RUN cp /output/copyright /output/usr/share/doc/ghostty/

@@ -1,16 +1,13 @@
-docker build . -t ghostty-bookworm --build-arg GHOSTTY_VERSION=1.0.1 --build-arg DEBIAN_DIST=bookworm
-id=$(docker create ghostty-bookworm)
-docker cp $id:/ghostty_1.0.1-1~bookworm_amd64.deb - > ./ghostty_1.0.1-1~bookworm_amd64.deb
-tar -xf ./ghostty_1.0.1-1~bookworm_amd64.deb
-
-
-docker build . -t ghostty-trixie --build-arg GHOSTTY_VERSION=1.0.1 --build-arg DEBIAN_DIST=trixie
-id=$(docker create ghostty-trixie)
-docker cp $id:/ghostty_1.0.1-1~trixie_amd64.deb - > ./ghostty_1.0.1-1~trixie_amd64.deb
-tar -xf ./ghostty_1.0.1-1~trixie_amd64.deb
-
-docker build . -t ghostty-sid --build-arg GHOSTTY_VERSION=1.0.1 --build-arg DEBIAN_DIST=sid
-id=$(docker create ghostty-sid)
-docker cp $id:/ghostty_1.0.1-1~sid_amd64.deb - > ./ghostty_1.0.1-1~sid_amd64.deb
-tar -xf ./ghostty_1.0.1-1~sid_amd64.deb
+GHOSTTY_VERSION=$1
+BUILD_VERSION=$2
+declare -a arr=("bookworm" "trixie" "sid")
+for i in "${arr[@]}"
+do
+  DEBIAN_DIST=$i
+  FULL_VERSION=$GHOSTTY_VERSION-${BUILD_VERSION}+${DEBIAN_DIST}_amd64
+  docker build . -t ghostty-$DEBIAN_DIST --build-arg GHOSTTY_VERSION=$GHOSTTY_VERSION --build-arg DEBIAN_DIST=$DEBIAN_DIST --build-arg BUILD_VERSION=$BUILD_VERSION --build-arg FULL_VERSION=$FULL_VERSION
+  id="$(docker create ghostty-$DEBIAN_DIST)"
+  docker cp $id:/ghostty_$FULL_VERSION.deb - > ./ghostty_$FULL_VERSION.deb
+  tar -xf ./ghostty_$FULL_VERSION.deb
+done
 

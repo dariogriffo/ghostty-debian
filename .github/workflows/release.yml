@@ -1,14 +1,14 @@
 name: Build Ghostty for Debian
 
 on:
-  pull_request:
-  push:
-    branches:
-      - main
   workflow_dispatch:
     inputs:
-      release_version:
-        description: The version to release.
+      ghostty_version:
+        description: The version of ghostty to build.
+        type: string
+        required: true
+      build_version:
+        description: The build version.
         type: string
         required: true
 
@@ -24,7 +24,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build Ghostty
-        run: ./build_ghostty_debian.sh
+        run: ./build_ghostty_debian.sh ${{ inputs.ghostty_version }} ${{ inputs.build_version }}
       
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -49,7 +49,7 @@ jobs:
         with:
           draft: true
           files: ghostty_*.deb
-          name: ${{ inputs.release_version }}
+          name: ${{ inputs.ghostty_version }}+${{ inputs.build_version }}
           tag_name: ${{ env.RELEASE_TAG }}
           fail_on_unmatched_files: true
 
