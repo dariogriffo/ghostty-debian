@@ -17,7 +17,7 @@
 # Ghostty for Debian
 
 This repository contains build scripts to produce the _unofficial_ Debian packages
-(.deb) for [Ghostty](https://ghostty.org) hosted at [ghostty-debian.github.io](https://ghostty-debian.github.io)
+(.deb) for [Ghostty](https://ghostty.org) hosted at [debian.griffo.io](https://debian.griffo.io)
 
 Currently supported debian distros are:
 - Bookworm
