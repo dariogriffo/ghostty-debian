@@ -43,7 +43,7 @@ RUN gzip -n -9 /output/usr/share/doc/ghostty/changelog.Debian
 RUN gzip -n -9 /output/usr/share/man/man1/ghostty.1
 RUN gzip -n -9 /output/usr/share/man/man5/ghostty.5
 RUN mv /output/usr/share/zsh/site-functions /output/usr/share/zsh/vendor-completions
-RUN [ "$DEBIAN_DIST" != "bookworm" ] && rm /output/usr/share/terminfo/ghostty
+RUN [ "$DEBIAN_DIST" != "bookworm" ] && rm -fRd /output/usr/share/terminfo/g
 
 RUN ls -la /output/*
 RUN dpkg-deb --build /output /ghostty_${FULL_VERSION}.deb
