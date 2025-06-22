@@ -6,7 +6,7 @@ Homepage: https://ghostty.org/
 Package: ghostty
 Version: GHOSTTY_VERSION-BUILD_VERSION+DIST
 Architecture: amd64
-Depends: libadwaita-1-0, libc6, libfontconfig1, libfreetype6, libglib2.0-0, libgtk-4-1, libharfbuzz0b, libonig5, libx11-6
+Depends: libadwaita-1-0, libc6, libfontconfig1, libfreetype6, libglib2.0-0, libgtk-4-1, libharfbuzz0b, libonig5, libx11-6, libxml2-utils
 Description: Fast, feature-rich, and cross-platform terminal emulator.
  Ghostty is a terminal emulator that differentiates itself by being fast,
  feature-rich, and native. While there are many excellent terminal emulators
