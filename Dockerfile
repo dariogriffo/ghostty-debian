@@ -22,21 +22,18 @@ RUN zig build --summary all --prefix ./zig-out/usr -Doptimize=ReleaseFast -Dcpu=
 
 
 RUN mkdir -p /output/DEBIAN
+RUN mkdir -p /output/usr/share/doc/ghostty/
 
 COPY output/DEBIAN/control /output/DEBIAN/
-COPY output/changelog.Debian /output/changelog.Debian
-COPY output/copyright /output/copyright
+COPY output/changelog.Debian /output/usr/share/doc/ghostty/changelog.Debian
+COPY output/copyright /output/usr/share/doc/ghostty/copyright
 
 RUN cp -R ./zig-out/** /output/
 
-RUN sed -i "s/DIST/$DEBIAN_DIST/" /output/changelog.Debian
+RUN sed -i "s/DIST/$DEBIAN_DIST/" /output/usr/share/doc/ghostty/changelog.Debian
 RUN sed -i "s/DIST/$DEBIAN_DIST/" /output/DEBIAN/control
 RUN sed -i "s/GHOSTTY_VERSION/$GHOSTTY_VERSION/" /output/DEBIAN/control
 RUN sed -i "s/BUILD_VERSION/$BUILD_VERSION/" /output/DEBIAN/control
-
-RUN mkdir -p /output/usr/share/doc/ghostty/
-RUN cp /output/copyright /output/usr/share/doc/ghostty/
-RUN cp /output/changelog.Debian /output/usr/share/doc/ghostty/
 
 RUN gzip -n -9 /output/usr/share/doc/ghostty/changelog.Debian
 
