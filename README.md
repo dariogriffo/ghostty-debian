@@ -14,6 +14,23 @@
  👻 Ghostty is a fast, feature-rich, and cross-platform terminal emulator that uses platform-native UI and GPU acceleration.
 </p>
 
+<p align="center">
+⭐⭐⭐ Love using Ghostty on Debian? Show your support by starring this repo! ⭐⭐⭐
+</p>
+
+<h4 align="center">
+    <p>
+      <a href="https://github.com/dariogriffo/zig-debian">
+        <img src="https://avatars.githubusercontent.com/u/27973237?s=200&v=4" alt="Zig Logo" width="48" style="margin-right: 12px">
+        <img src="https://www.debian.org/logos/openlogo-nd.svg" alt="Debian Logo" width="39" style="margin-left: 12px">
+        <br>Zig for Debian
+      </a>
+    </p>
+</h4>
+<p align="center">
+  <i>Ghostty is built using Zig, a powerful systems programming language. Check out my Debian package for Zig above.</i>
+</p>
+
 # Ghostty for Debian
 
 This repository contains build scripts to produce the _unofficial_ Debian packages
