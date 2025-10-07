@@ -6,16 +6,13 @@ ARG GHOSTTY_VERSION
 ARG BUILD_VERSION
 ARG FULL_VERSION
 
-ENV ZIG_VERSION=0.13.0
+RUN apt update && apt install -y git curl gpg
+RUN curl -sS https://debian.griffo.io/EA0F721D231FDD3A0A17B9AC7808B4DD62C41256.asc | gpg --dearmor --yes -o /etc/apt/trusted.gpg.d/debian.griffo.io.gpg
+RUN echo "deb https://debian.griffo.io/apt $DEBIAN_DIST main" | tee /etc/apt/sources.list.d/debian.griffo.io.list
 
-RUN apt update && apt install -y build-essential debhelper devscripts pandoc libonig-dev libbz2-dev wget libgtk-4-dev libadwaita-1-dev minisign
-RUN wget -q "https://ziglang.org/download/$ZIG_VERSION/zig-linux-x86_64-$ZIG_VERSION.tar.xz" && tar -xf "zig-linux-x86_64-$ZIG_VERSION.tar.xz" -C /opt && rm "zig-linux-x86_64-$ZIG_VERSION.tar.xz" && ln -s "/opt/zig-linux-x86_64-$ZIG_VERSION/zig" /usr/local/bin/zig
-RUN wget -q "https://release.files.ghostty.org/$GHOSTTY_VERSION/ghostty-$GHOSTTY_VERSION.tar.gz"
-RUN wget -q "https://release.files.ghostty.org/$GHOSTTY_VERSION/ghostty-$GHOSTTY_VERSION.tar.gz.minisig"
-RUN minisign -Vm "ghostty-$GHOSTTY_VERSION.tar.gz" -P RWQlAjJC23149WL2sEpT/l0QKy7hMIFhYdQOFy0Z7z7PbneUgvlsnYcV
-RUN rm ghostty-$GHOSTTY_VERSION.tar.gz.minisig
-RUN tar -xzmf "ghostty-$GHOSTTY_VERSION.tar.gz"
-WORKDIR "ghostty-$GHOSTTY_VERSION" 
+RUN apt update && apt install -y blueprint-compiler zig git build-essential debhelper devscripts pandoc libonig-dev libbz2-dev wget libgtk4-layer-shell-dev libgtk-4-dev libadwaita-1-dev minisign
+RUN git clone https://github.com/ghostty-org/ghostty
+WORKDIR "ghostty" 
 
 RUN sed -i 's/linkSystemLibrary2("bzip2", dynamic_link_opts)/linkSystemLibrary2("bz2", dynamic_link_opts)/' build.zig
 RUN zig build --summary all --prefix ./zig-out/usr -Doptimize=ReleaseFast -Dcpu=baseline -Dpie=true -Demit-docs -Dversion-string=$GHOSTTY_VERSION
