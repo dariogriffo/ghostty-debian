@@ -1,7 +1,7 @@
 ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/dariogriffo/ghostty-debian/total)
 ![GitHub Downloads (all assets, latest release)](https://img.shields.io/github/downloads/dariogriffo/ghostty-debian/latest/total)
 ![GitHub Release](https://img.shields.io/github/v/release/dariogriffo/ghostty-debian)
-![GitHub Release Date](https://img.shields.io/github/release-date/dariogriffo/ghostty-debian)
+![GitHub Release Date](https://img.shields.io/github/release-date/dariogriffo/ghostty-debian?display_date=published_at)
 
 <h1>
    <p align="center">
