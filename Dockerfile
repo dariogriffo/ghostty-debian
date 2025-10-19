@@ -7,7 +7,7 @@ ARG BUILD_VERSION
 ARG FULL_VERSION
 
 RUN apt update && apt install -y git curl wget gpg blueprint-compiler git build-essential debhelper devscripts pandoc libonig-dev libbz2-dev libgtk4-layer-shell-dev libgtk-4-dev libadwaita-1-dev minisign libxml2-utils
-RUN wget https://github.com/dariogriffo/zig-debian/releases/download/0.14.1%2B9/zig-zero_0.14.1-9+${DEBIAN_DIST}_amd64.deb && apt install ./zig-zero_0.14.1-9+${DEBIAN_DIST}_amd64.deb && ln -s /usr/lib/zig/0.14.1/zig /usr/bin/zig
+RUN wget https://github.com/dariogriffo/zig-debian/releases/download/0.14.1%2B9/zig-zero_0.14.1-9+bookworm_amd64.deb && apt install ./zig-zero_0.14.1-9+bookworm_amd64.deb && ln -s /usr/lib/zig/0.14.1/zig /usr/bin/zig
 
 RUN git clone https://github.com/ghostty-org/ghostty
 WORKDIR "ghostty" 
