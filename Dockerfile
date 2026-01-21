@@ -13,6 +13,8 @@ RUN git clone https://github.com/ghostty-org/ghostty
 WORKDIR "ghostty" 
 RUN git checkout v$GHOSTTY_VERSION
 
+RUN sed -i 's|https://github.com/mbadolato/iTerm2-Color-Schemes/releases/download/release-20251002-142451-4a5043e/ghostty-themes.tgz|https://github.com/mbadolato/iTerm2-Color-Schemes/releases/download/release-20251229-150532-f279991/ghostty-themes.tgz|' build.zig.zon
+RUN sed -i 's|N-V-__8AALIsAwDyo88G5mGJGN2lSVmmFMx4YePfUvp_2o3Y|N-V-__8AAIdIAwAO4ro1DOaG7QTFq3ewrTQIViIKJ3lKY6lV|' build.zig.zon
 RUN sed -i 's/linkSystemLibrary2("bzip2", dynamic_link_opts)/linkSystemLibrary2("bz2", dynamic_link_opts)/' build.zig
 RUN zig build --summary all --prefix ./zig-out/usr -Doptimize=ReleaseFast -Dcpu=baseline -Dpie=true -Demit-docs -Dversion-string=$GHOSTTY_VERSION
 
@@ -44,5 +46,3 @@ RUN rm -fRd /output/usr/share/terminfo/g || true
 
 RUN ls -la /output/*
 RUN dpkg-deb --build /output /ghostty_${FULL_VERSION}.deb
-
-
