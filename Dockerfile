@@ -7,8 +7,15 @@ ARG BUILD_VERSION
 ARG FULL_VERSION
 
 RUN apt update && apt install -y git curl wget gpg blueprint-compiler git build-essential debhelper devscripts pandoc libonig-dev libbz2-dev libgtk4-layer-shell-dev libgtk-4-dev libadwaita-1-dev minisign libxml2-utils
-RUN wget https://github.com/dariogriffo/zig-debian/releases/download/0.14.1%2B9/zig-zero_0.14.1-9+bookworm_amd64.deb && apt install ./zig-zero_0.14.1-9+bookworm_amd64.deb && ln -s /usr/lib/zig/0.14.1/zig /usr/bin/zig
-
+RUN apt-get update && apt-get install -y \
+    curl \
+    gnupg \
+    lsb-release \
+    && curl -sS https://debian.griffo.io/EA0F721D231FDD3A0A17B9AC7808B4DD62C41256.asc | gpg --dearmor --yes -o /etc/apt/trusted.gpg.d/debian.griffo.io.gpg \
+    && echo "deb https://debian.griffo.io/apt $(lsb_release -sc) main" | tee /etc/apt/sources.list.d/debian.griffo.io.list \
+    && apt-get update \
+    && apt-get install -y zig
+    
 RUN git clone https://github.com/ghostty-org/ghostty
 WORKDIR "ghostty" 
 RUN git checkout v$GHOSTTY_VERSION
