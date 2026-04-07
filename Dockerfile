@@ -21,7 +21,7 @@ WORKDIR "ghostty"
 RUN git checkout v$GHOSTTY_VERSION
 
 RUN sed -i 's/linkSystemLibrary2("bzip2", dynamic_link_opts)/linkSystemLibrary2("bz2", dynamic_link_opts)/' build.zig
-RUN zig build --summary all --prefix ./zig-out/usr -Doptimize=ReleaseFast -Dcpu=baseline -Dpie=true -Demit-docs -Dversion-string=$GHOSTTY_VERSION
+RUN zig build --summary all --prefix ./zig-out/usr -fsys=fontconfig -Doptimize=ReleaseFast -Dcpu=baseline -Dpie=true -Demit-docs -Dversion-string=$GHOSTTY_VERSION
 
 
 RUN mkdir -p /output/DEBIAN
