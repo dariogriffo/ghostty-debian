@@ -64,6 +64,20 @@ sudo apt update
 sudo apt install ghostty
 ```
 
+### Tip (bleeding-edge) packages
+
+If you want to track the latest Ghostty `tip` builds, install the `-tip`
+packages instead. These are built from the upstream `main` branch and are
+packaged in a separate repository ([ghostty-tip-debian](https://github.com/dariogriffo/ghostty-tip-debian)),
+but published to the same apt repository, so no extra sources are needed:
+
+```sh
+sudo apt update
+sudo apt install ghostty-tip libghostty-vt-tip libghostty-vt-dev-tip
+```
+
+The `-tip` packages can be installed alongside the stable `ghostty` package.
+
 ### Manual Installation
 
 1. Download the .deb package for your Debian version available on
