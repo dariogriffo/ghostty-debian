@@ -43,7 +43,7 @@ jobs:
         run: |
           FULL_VERSION=${{ env.GHOSTTY_VERSION }}-${{ env.BUILD_VERSION }}+${{ matrix.codename }}_amd64
           id="$(docker create ghostty-${{ matrix.codename }})"
-          docker cp $id:/ghostty_${FULL_VERSION}.deb ./ghostty_${FULL_VERSION}.deb
+          docker cp $id:/build/ghostty_${FULL_VERSION}.deb ./ghostty_${FULL_VERSION}.deb
           docker rm $id
           ls -lh ghostty_${FULL_VERSION}.deb
 

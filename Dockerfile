@@ -1,55 +1,45 @@
-ARG DEBIAN_DIST=bookworm
+ARG DEBIAN_DIST=trixie
 FROM debian:$DEBIAN_DIST
 
 ARG DEBIAN_DIST
 ARG GHOSTTY_VERSION
 ARG BUILD_VERSION
-ARG FULL_VERSION
 
-RUN apt update && apt install -y git curl wget gpg blueprint-compiler git build-essential debhelper devscripts pandoc libonig-dev libbz2-dev libgtk4-layer-shell-dev libgtk-4-dev libadwaita-1-dev minisign libxml2-utils
+# Install build deps + packaging tools
 RUN apt-get update && apt-get install -y \
-    curl \
-    gnupg \
-    lsb-release \
-    && curl -sS https://debian.griffo.io/EA0F721D231FDD3A0A17B9AC7808B4DD62C41256.asc | gpg --dearmor --yes -o /etc/apt/trusted.gpg.d/debian.griffo.io.gpg \
-    && echo "deb https://debian.griffo.io/apt $(lsb_release -sc) main" | tee /etc/apt/sources.list.d/debian.griffo.io.list \
+    git curl wget gpg lsb-release \
+    build-essential debhelper devscripts fakeroot \
+    blueprint-compiler pandoc minisign \
+    libonig-dev libbz2-dev libgtk4-layer-shell-dev \
+    libgtk-4-dev libadwaita-1-dev libxml2-utils
+
+# Install zig from griffo.io repo
+RUN curl -sS https://debian.griffo.io/EA0F721D231FDD3A0A17B9AC7808B4DD62C41256.asc \
+    | gpg --dearmor --yes -o /etc/apt/trusted.gpg.d/debian.griffo.io.gpg \
+    && echo "deb https://debian.griffo.io/apt $(lsb_release -sc) main" \
+    | tee /etc/apt/sources.list.d/debian.griffo.io.list \
     && apt-get update \
     && apt-get install -y zig-oldstable
-    
+
+# Clone and checkout
+WORKDIR /build
 RUN git clone https://github.com/ghostty-org/ghostty
-WORKDIR "ghostty" 
+WORKDIR /build/ghostty
 RUN git checkout v$GHOSTTY_VERSION
 
-RUN sed -i 's/linkSystemLibrary2("bzip2", dynamic_link_opts)/linkSystemLibrary2("bz2", dynamic_link_opts)/' build.zig
-RUN zig build --summary all --prefix ./zig-out/usr -Doptimize=ReleaseFast -Dcpu=baseline -Dpie=true -Demit-docs -Dversion-string=$GHOSTTY_VERSION
+# Copy debian packaging
+COPY debian/ debian/
+RUN chmod +x debian/rules
 
+# Generate debian/changelog with proper version and timestamp
+ENV DEBEMAIL="dariogriffo@gmail.com"
+ENV DEBFULLNAME="Dario Griffo"
+RUN dch --create --package ghostty \
+    --newversion "${GHOSTTY_VERSION}-${BUILD_VERSION}+${DEBIAN_DIST}" \
+    --distribution "${DEBIAN_DIST}" \
+    "Unofficial Debian package." && \
+    dch --append "https://ghostty.org/docs/install/release-notes/$(echo $GHOSTTY_VERSION | tr '.' '-')"
 
-RUN mkdir -p /output/DEBIAN
-RUN mkdir -p /output/usr/share/doc/ghostty/
-
-COPY output/DEBIAN/control /output/DEBIAN/
-COPY output/changelog.Debian /output/usr/share/doc/ghostty/changelog.Debian
-COPY output/copyright /output/usr/share/doc/ghostty/copyright
-
-RUN cp -R ./zig-out/** /output/
-
-RUN sed -i "s/DIST/$DEBIAN_DIST/" /output/usr/share/doc/ghostty/changelog.Debian
-RUN sed -i "s/DIST/$DEBIAN_DIST/" /output/DEBIAN/control
-RUN sed -i "s/GHOSTTY_VERSION/$GHOSTTY_VERSION/" /output/DEBIAN/control
-RUN sed -i "s/BUILD_VERSION/$BUILD_VERSION/" /output/DEBIAN/control
-
-RUN sed -i 's/\.\/zig-out//g' /output/usr/share/systemd/user/app-com.mitchellh.ghostty.service
-RUN sed -i 's/\.\/zig-out//g' /output/usr/share/applications/com.mitchellh.ghostty.desktop
-RUN sed -i 's/\.\/zig-out//g' /output/usr/share/dbus-1/services/com.mitchellh.ghostty.service
-
-RUN gzip -n -9 /output/usr/share/doc/ghostty/changelog.Debian
-
-RUN gzip -n -9 /output/usr/share/man/man1/ghostty.1
-RUN gzip -n -9 /output/usr/share/man/man5/ghostty.5
-RUN mv /output/usr/share/zsh/site-functions /output/usr/share/zsh/vendor-completions
-RUN rm -fRd /output/usr/share/terminfo/g || true
-
-RUN ls -la /output/*
-RUN dpkg-deb --build /output /ghostty_${FULL_VERSION}.deb
-
+# Build
+RUN dpkg-buildpackage --build=binary --no-sign --no-check-builddeps
 
