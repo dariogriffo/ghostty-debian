@@ -1,0 +1,45 @@
+#!/usr/bin/make -f
+
+export GHOSTTY_VERSION ?= $(shell dpkg-parsechangelog -S Version | sed 's/-.*//')
+
+%:
+	dh $@
+
+override_dh_auto_configure:
+	# zig has no configure step
+
+override_dh_auto_build:
+	# Build happens in install step (zig build does both)
+
+override_dh_auto_install:
+	# Debian names it libbz2, not libbzip2
+	sed -i 's/linkSystemLibrary2("bzip2", dynamic_link_opts)/linkSystemLibrary2("bz2", dynamic_link_opts)/' src/build/SharedDeps.zig
+	DESTDIR=$(CURDIR)/debian/ghostty zig build \
+		--summary all \
+		--prefix /usr \
+		--build-id \
+		-Doptimize=ReleaseFast \
+		-Dcpu=baseline \
+		-Dpie=true \
+		-Demit-docs \
+		-Dstrip=false \
+		-Dversion-string=$(GHOSTTY_VERSION)
+	# Remove static libraries
+	find $(CURDIR)/debian/ghostty -name '*.a' -delete
+	# terminfo: build produces x/xterm-ghostty (not in ncurses-term, ship it)
+	# and g/ghostty (already in ncurses-term, remove to avoid conflict)
+	rm $(CURDIR)/debian/ghostty/usr/share/terminfo/g/ghostty
+	rmdir $(CURDIR)/debian/ghostty/usr/share/terminfo/g
+	# Fix paths referencing build-time prefix
+	sed -i 's|\./zig-out||g' $(CURDIR)/debian/ghostty/usr/share/systemd/user/app-com.mitchellh.ghostty.service
+	sed -i 's|\./zig-out||g' $(CURDIR)/debian/ghostty/usr/share/applications/com.mitchellh.ghostty.desktop
+	sed -i 's|\./zig-out||g' $(CURDIR)/debian/ghostty/usr/share/dbus-1/services/com.mitchellh.ghostty.service
+	# Debian puts zsh completions in vendor-completions
+	mv $(CURDIR)/debian/ghostty/usr/share/zsh/site-functions $(CURDIR)/debian/ghostty/usr/share/zsh/vendor-completions
+
+override_dh_auto_test:
+	# Skip tests
+
+override_dh_auto_clean:
+	# Don't run ghostty's Makefile clean — it deletes .zig-cache
+

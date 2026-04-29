@@ -30,7 +30,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: artifact
-          path: ghostty_*.deb
+          path: |
+            ghostty_*.deb
+            ghostty-dbgsym_*.deb
 
 
   release-ghostty:
@@ -48,8 +50,9 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           draft: true
-          files: ghostty_*.deb
+          files: |
+            ghostty_*.deb
+            ghostty-dbgsym_*.deb
           name: ${{ inputs.ghostty_version }}+${{ inputs.build_version }}
           tag_name: ${{ env.RELEASE_TAG }}
           fail_on_unmatched_files: true
-
