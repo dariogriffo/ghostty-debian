@@ -1,0 +1,58 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions: read-all
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+env:
+  GHOSTTY_VERSION: "1.3.1"
+  BUILD_VERSION: "3"
+
+jobs:
+  build-ghostty:
+    name: Build (${{ matrix.codename }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        codename: [trixie, forky, sid]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # The following steps mirror the body of build_ghostty_debian.sh,
+      # but for a single codename (parallelized via the matrix).
+      - name: Build Ghostty
+        run: |
+          FULL_VERSION=${{ env.GHOSTTY_VERSION }}-${{ env.BUILD_VERSION }}+${{ matrix.codename }}_amd64
+          docker build . -t ghostty-${{ matrix.codename }} \
+            --build-arg GHOSTTY_VERSION=${{ env.GHOSTTY_VERSION }} \
+            --build-arg DEBIAN_DIST=${{ matrix.codename }} \
+            --build-arg BUILD_VERSION=${{ env.BUILD_VERSION }} \
+            --build-arg FULL_VERSION=$FULL_VERSION
+
+      - name: Extract .deb
+        run: |
+          FULL_VERSION=${{ env.GHOSTTY_VERSION }}-${{ env.BUILD_VERSION }}+${{ matrix.codename }}_amd64
+          id="$(docker create ghostty-${{ matrix.codename }})"
+          docker cp $id:/ghostty_${FULL_VERSION}.deb ./ghostty_${FULL_VERSION}.deb
+          docker rm $id
+          ls -lh ghostty_${FULL_VERSION}.deb
+
+      - name: Inspect .deb Contents
+        run: dpkg-deb --contents ghostty_*.deb
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ghostty-${{ matrix.codename }}
+          retention-days: 7
+          path: ghostty_*.deb
