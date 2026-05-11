@@ -45,6 +45,19 @@ This is an unofficial community project to provide a package that's easy to
 install on Debian. If you're looking for the Ghostty source code, see
 [ghostty-org/ghostty](https://github.com/ghostty-org/ghostty).
 
+## Ubuntu users
+
+This repository only supports **Debian**.
+
+Some Ubuntu versions already include Ghostty in their official repositories.
+For other Ubuntu versions, use the [Ghostty Ubuntu PPA](https://launchpad.net/~mkasberg/+archive/ubuntu/ghostty-ubuntu):
+
+```sh
+sudo add-apt-repository ppa:mkasberg/ghostty-ubuntu
+sudo apt update
+sudo apt install ghostty
+```
+
 ## Install/Update
 
 ### The Debian way
