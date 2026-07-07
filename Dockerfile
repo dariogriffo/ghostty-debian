@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y \
     build-essential debhelper devscripts fakeroot \
     blueprint-compiler pandoc minisign \
     libonig-dev libbz2-dev libgtk4-layer-shell-dev \
-    libgtk-4-dev libadwaita-1-dev libxml2-utils
+    libgtk-4-dev libadwaita-1-dev libxml2-utils libfontconfig-dev
 
 # Install zig from griffo.io repo
 RUN curl -sS https://debian.griffo.io/EA0F721D231FDD3A0A17B9AC7808B4DD62C41256.asc \

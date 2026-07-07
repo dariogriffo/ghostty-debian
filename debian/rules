@@ -23,6 +23,7 @@ override_dh_auto_install:
 		-Dpie=true \
 		-Demit-docs \
 		-Dstrip=false \
+		-fsys=fontconfig \
 		-Dversion-string=$(GHOSTTY_VERSION)
 	# Remove static libraries
 	find $(CURDIR)/debian/ghostty -name '*.a' -delete
