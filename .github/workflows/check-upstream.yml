@@ -1,0 +1,61 @@
+name: Check for new ghostty release
+
+on:
+  schedule:
+    # releases/latest excludes prereleases and drafts, so we only chase stable.
+    - cron: "17 * * * *"
+  workflow_dispatch: {}
+
+concurrency:
+  group: check-upstream
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: write   # required to dispatch release.yml
+
+jobs:
+  check:
+    name: Compare upstream vs published
+    runs-on: ubuntu-latest
+    steps:
+      - name: Detect and dispatch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          UPSTREAM_REPO="ghostty-org/ghostty"
+          VERSION_INPUT="ghostty_version"
+          TAG_PREFIX="v"
+
+          # Latest stable upstream release tag, with the project's tag prefix stripped
+          # (e.g. v1.2.3 -> 1.2.3, bun-v1.2.3 -> 1.2.3) to match this repo's version input.
+          up_tag=$(gh api "repos/${UPSTREAM_REPO}/releases/latest" -q .tag_name 2>/dev/null || echo "")
+          if [ -z "$up_tag" ]; then
+            echo "Could not read latest release of ${UPSTREAM_REPO}; aborting."
+            exit 1
+          fi
+          up_ver="${up_tag#${TAG_PREFIX}}"
+          echo "Upstream: ${up_tag} -> ${up_ver}"
+
+          # Our latest published release is "<ver>+<build>"; 404 -> empty -> build it.
+          ours=$(gh api "repos/${GITHUB_REPOSITORY}/releases/latest" -q .tag_name 2>/dev/null || echo "")
+          ours_ver="${ours%%+*}"
+          echo "Ours: ${ours:-<none>} -> ${ours_ver:-<none>}"
+
+          if [ "$up_ver" = "$ours_ver" ]; then
+            echo "Up to date."
+            exit 0
+          fi
+
+          # Don't dispatch a duplicate while a build is already running/queued.
+          active=$(gh run list --workflow=release.yml --json status \
+            -q '[.[] | select(.status == "in_progress" or .status == "queued")] | length')
+          if [ "$active" -gt 0 ]; then
+            echo "A release.yml run is already active ($active); skipping this tick."
+            exit 0
+          fi
+
+          echo "New release detected: ${ours_ver:-<none>} -> ${up_ver}. Dispatching build."
+          gh workflow run release.yml -f "${VERSION_INPUT}=${up_ver}" -f build_version=1 

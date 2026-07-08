@@ -1,0 +1,37 @@
+name: Publish release
+
+on:
+  workflow_run:
+    workflows: ["Build Ghostty for Debian"]
+    types:
+      - completed
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    name: Publish the draft release
+    # Only after a successful build. workflow_run fires regardless of who
+    # dispatched the build, so this closes the loop for both manual runs and
+    # the (uv-only, for now) upstream poller.
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish newest draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # The build just created a draft named "<ver>+<build>". Grab the most
+          # recent draft and flip it live. If there's no draft (e.g. the release
+          # step already published, or nothing was produced), do nothing.
+          tag=$(gh release list --repo "$GITHUB_REPOSITORY" --limit 30 \
+            --json tagName,isDraft,createdAt \
+            --jq 'map(select(.isDraft)) | sort_by(.createdAt) | last | .tagName // ""')
+          if [ -z "$tag" ]; then
+            echo "No draft release found; nothing to publish."
+            exit 0
+          fi
+          echo "Publishing draft release: $tag"
+          gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --draft=false
