@@ -35,7 +35,7 @@ RUN chmod +x debian/rules
 ENV DEBEMAIL="dariogriffo@gmail.com"
 ENV DEBFULLNAME="Dario Griffo"
 RUN dch --create --package ghostty \
-    --newversion "${GHOSTTY_VERSION}-${BUILD_VERSION}+${DEBIAN_DIST}" \
+    --newversion "${GHOSTTY_VERSION}-${BUILD_VERSION}~${DEBIAN_DIST}" \
     --distribution "${DEBIAN_DIST}" \
     "Unofficial Debian package." && \
     dch --append "https://ghostty.org/docs/install/release-notes/$(echo $GHOSTTY_VERSION | tr '.' '-')"
