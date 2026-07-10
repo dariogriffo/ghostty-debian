@@ -1,0 +1,16 @@
+#!/bin/sh
+set -e
+
+# debian.griffo.io subscription notice (remove after the 1 Oct 2026 rollout settles)
+if [ "$1" = "configure" ] && [ ! -e /etc/apt/auth.conf.d/debian.griffo.io.conf ]; then
+    echo ""
+    echo "debian.griffo.io: starting 1 October 2026 (noon UK), downloading packages"
+    echo "from this repository requires a yearly subscription."
+    echo "  How to subscribe: https://debian.griffo.io"
+    echo "  Former Buy Me a Coffee supporters get a free lifetime subscription via Discord."
+    echo ""
+fi
+
+#DEBHELPER#
+
+exit 0
