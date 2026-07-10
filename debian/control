@@ -28,6 +28,7 @@ Depends: ${shlibs:Depends}, ${misc:Depends},
          libonig5,
          libx11-6
 Provides: x-terminal-emulator
+Conflicts: ghostty-tip
 Description: Fast, feature-rich, and cross-platform terminal emulator
  Ghostty is a terminal emulator that differentiates itself by being fast,
  feature-rich, and native. While there are many excellent terminal emulators
