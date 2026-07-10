@@ -34,7 +34,8 @@ RUN chmod +x debian/rules
 # Generate debian/changelog with proper version and timestamp
 ENV DEBEMAIL="dariogriffo@gmail.com"
 ENV DEBFULLNAME="Dario Griffo"
-RUN dch --create --package ghostty \
+RUN rm -f debian/changelog && \
+    dch --create --package ghostty \
     --newversion "${GHOSTTY_VERSION}-${BUILD_VERSION}~${DEBIAN_DIST}" \
     --distribution "${DEBIAN_DIST}" \
     "Unofficial Debian package." && \
