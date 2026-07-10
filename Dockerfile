@@ -6,7 +6,9 @@ ARG GHOSTTY_VERSION
 ARG BUILD_VERSION
 
 # Install build deps + packaging tools
-RUN apt-get update && apt-get install -y \
+# APT::Immediate-Configure=false works around a dependency-ordering bug in
+# sid's tpm2-tss/systemd-tpm stack (libtss2-tcti-cmd0t64 fails to configure)
+RUN apt-get update && apt-get install -y -o APT::Immediate-Configure=false \
     git curl wget gpg lsb-release \
     build-essential debhelper devscripts fakeroot \
     blueprint-compiler pandoc minisign \
