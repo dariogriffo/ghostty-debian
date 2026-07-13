@@ -16,10 +16,10 @@ RUN apt-get update && apt-get install -y -o APT::Immediate-Configure=false \
     libgtk-4-dev libadwaita-1-dev libxml2-utils libfontconfig-dev
 
 # Install zig from griffo.io repo
-RUN curl -sS https://debian.griffo.io/EA0F721D231FDD3A0A17B9AC7808B4DD62C41256.asc \
-    | gpg --dearmor --yes -o /etc/apt/trusted.gpg.d/debian.griffo.io.gpg \
-    && echo "deb https://debian.griffo.io/apt $(lsb_release -sc) main" \
-    | tee /etc/apt/sources.list.d/debian.griffo.io.list \
+RUN curl -sS https://deb.griffo.io/EA0F721D231FDD3A0A17B9AC7808B4DD62C41256.asc \
+    | gpg --dearmor --yes -o /etc/apt/trusted.gpg.d/deb.griffo.io.gpg \
+    && echo "deb https://deb.griffo.io/apt $(lsb_release -sc) main" \
+    | tee /etc/apt/sources.list.d/deb.griffo.io.list \
     && apt-get update \
     && apt-get install -y zig-oldstable
 

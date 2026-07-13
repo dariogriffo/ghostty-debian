@@ -1,17 +1,17 @@
 #!/bin/sh
 set -e
 
-# debian.griffo.io subscription notice (remove after the 1 Oct 2026 rollout settles).
+# deb.griffo.io subscription notice (remove after the 1 Oct 2026 rollout settles).
 # Only show it while the rollout is still upcoming, i.e. before 2026-10-01T11:00:00Z
 # (noon UK). On any date(1) failure we fall back past the cutoff so the notice is skipped.
 ROLLOUT_EPOCH=1790852400
 NOW_EPOCH=$(date -u +%s 2>/dev/null || echo "$ROLLOUT_EPOCH")
 case "$NOW_EPOCH" in ''|*[!0-9]*) NOW_EPOCH=$ROLLOUT_EPOCH ;; esac
-if [ "$1" = "configure" ] && [ "$NOW_EPOCH" -lt "$ROLLOUT_EPOCH" ] && [ ! -e /etc/apt/auth.conf.d/debian.griffo.io.conf ]; then
+if [ "$1" = "configure" ] && [ "$NOW_EPOCH" -lt "$ROLLOUT_EPOCH" ] && [ ! -e /etc/apt/auth.conf.d/deb.griffo.io.conf ]; then
     echo ""
-    echo "debian.griffo.io: starting 1 October 2026 (noon UK), downloading packages"
+    echo "deb.griffo.io: starting 1 October 2026 (noon UK), downloading packages"
     echo "from this repository requires a yearly subscription."
-    echo "  How to subscribe: https://debian.griffo.io"
+    echo "  How to subscribe: https://deb.griffo.io"
     echo "  Former Buy Me a Coffee supporters get a free lifetime subscription via Discord."
     echo ""
 fi
