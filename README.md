@@ -15,7 +15,7 @@
 </p>
 
 <p align="center">
-⭐⭐⭐ Love using Ghostty on Debian? Show your support by starring this repo or buying me a coffee! ⭐⭐⭐
+⭐⭐⭐ Love using Ghostty on Debian? Show your support by starring this repo or [subscribing](https://buy.stripe.com/aFa28q8hr0lRdlm4a2enS01) — access to this repository requires a yearly subscription. ⭐⭐⭐
 </p>
 
 <h4 align="center">
