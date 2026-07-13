@@ -60,6 +60,8 @@ sudo apt install ghostty
 
 ## Install/Update
 
+📖 **Step-by-step install guide:** [Debian](https://debian.griffo.io/install-latest-ghostty-in-debian.html)
+
 ### The Debian way
 
 ```sh
