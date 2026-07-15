@@ -87,6 +87,17 @@ EOF
 fail()  { echo "❌ $*" >&2; exit 1; }
 info()  { echo "🔎 $*"; }
 
+# --- Offline mode (local checks + tests): when LICENSE_TEXT_FILE is set,
+#     skip the network fetch and classify that file directly. LICENSE_SPDX
+#     optionally supplies the SPDX id (as the GitHub API would). ------------
+LICENSE_TEXT=""; SPDX=""; USED_REF=""
+if [ -n "${LICENSE_TEXT_FILE:-}" ]; then
+  [ -f "$LICENSE_TEXT_FILE" ] || fail "LICENSE_TEXT_FILE not found: $LICENSE_TEXT_FILE"
+  LICENSE_TEXT="$(cat "$LICENSE_TEXT_FILE")"
+  SPDX="${LICENSE_SPDX:-}"
+  USED_REF="local"
+  info "Classifying local license file: $LICENSE_TEXT_FILE (SPDX='${SPDX:-none}')"
+else
 # --- Resolve upstream repository -------------------------------------------
 REPO_URL="${LICENSE_REPO_URL:-}"
 if [ -z "$REPO_URL" ] && [ -f debian/copyright ]; then
@@ -171,9 +182,13 @@ if [ -z "$USED_REF" ]; then
   echo "⚠️  No license found on a versioned tag; validated the upstream default branch instead."
 fi
 info "License downloaded from ref: '${USED_REF:-<default-branch>}'"
+fi
 
 # --- Classify the downloaded license text ----------------------------------
-lc="$(printf '%s' "$LICENSE_TEXT" | tr '[:upper:]' '[:lower:]')"
+# Lowercase AND collapse all whitespace (incl. newlines) to single spaces, so
+# phrase matches survive the line wrapping present in real license files
+# (e.g. PostgreSQL wraps "... this software and its\ndocumentation ...").
+lc="$(printf '%s' "$LICENSE_TEXT" | tr '[:upper:]' '[:lower:]' | tr -s '[:space:]' ' ')"
 
 # Restrictive add-ons / source-available licenses are checked FIRST because
 # clauses such as "Commons Clause" are appended on top of an otherwise
