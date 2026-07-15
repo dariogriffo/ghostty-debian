@@ -23,6 +23,11 @@ jobs:
       - name: Checkout ghostty-debian
         uses: actions/checkout@v4
 
+      - name: Validate upstream license permits paid distribution
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: ./validate_license.sh ${{ inputs.ghostty_version }}
+
       - name: Build Ghostty
         run: ./build_ghostty_debian.sh ${{ inputs.ghostty_version }} ${{ inputs.build_version }}
 
