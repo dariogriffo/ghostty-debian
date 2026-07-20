@@ -15,7 +15,7 @@
 </p>
 
 <p align="center">
-⭐⭐⭐ Love using Ghostty on Debian? Show your support by starring this repo or [subscribing](https://buy.stripe.com/aFa28q8hr0lRdlm4a2enS01) — access to this repository requires a yearly subscription. ⭐⭐⭐
+⭐⭐⭐ Love using Ghostty on Debian? Show your support by starring this repo or [subscribing](https://buy.stripe.com/aFa28q8hr0lRdlm4a2enS01) — from 1 October 2026, apt access requires a yearly subscription. ⭐⭐⭐
 </p>
 
 <h4 align="center">
@@ -63,6 +63,11 @@ sudo apt install ghostty
 📖 **Step-by-step install guide:** [Debian](https://deb.griffo.io/install-latest-ghostty-in-debian.html)
 
 ### The Debian way
+
+> ⚠️ **From 1 October 2026, apt access requires a yearly subscription**
+> ([deb.griffo.io](https://deb.griffo.io)). To use this tool for free, download
+> the .deb from the [Releases](https://github.com/dariogriffo/ghostty-debian/releases) page
+> and install it manually (see below).
 
 ```sh
 # 1. Download and store the repository signing key (dearmored)
