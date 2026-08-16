@@ -14,10 +14,6 @@
  👻 Ghostty is a fast, feature-rich, and cross-platform terminal emulator that uses platform-native UI and GPU acceleration.
 </p>
 
-<p align="center">
-⭐⭐⭐ Love using Ghostty on Debian? Show your support by starring this repo or [subscribing](https://buy.stripe.com/aFa28q8hr0lRdlm4a2enS01) — from 1 October 2026, apt access requires a yearly subscription. ⭐⭐⭐
-</p>
-
 <h4 align="center">
     <p>
       <a href="https://github.com/dariogriffo/zig-debian">
