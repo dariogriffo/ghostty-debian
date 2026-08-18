@@ -12,7 +12,8 @@ Build-Depends: debhelper-compat (= 13),
                libgtk-4-dev,
                libgtk4-layer-shell-dev,
                libonig-dev,
-               libxml2-utils
+               libxml2-utils,
+               pkgconf
 
 Package: ghostty
 Architecture: amd64

@@ -27,38 +27,42 @@
   <i>Ghostty is built using Zig, a powerful systems programming language. Check out my Debian package for Zig above.</i>
 </p>
 
-# Ghostty for Debian
+# Ghostty for Debian and Ubuntu
 
-This repository contains build scripts to produce the _unofficial_ Debian packages
-(.deb) for [Ghostty](https://ghostty.org) hosted at [deb.griffo.io](https://deb.griffo.io)
+This repository contains build scripts to produce the _unofficial_ Debian and Ubuntu
+packages (.deb) for [Ghostty](https://ghostty.org) hosted at [deb.griffo.io](https://deb.griffo.io)
 
-Currently supported debian distros are:
-- Bookworm
-- Trixie
-- Sid
+Currently supported Debian distros are:
+- Trixie (v13)
+- Forky (v14)
+- Sid (unstable)
+
+Currently supported Ubuntu releases are:
+- Noble Numbat (24.04 LTS)
+- Questing Quokka (25.10)
+- Resolute Raccoon (26.04 LTS)
 
 This is an unofficial community project to provide a package that's easy to
-install on Debian. If you're looking for the Ghostty source code, see
+install on Debian and Ubuntu. If you're looking for the Ghostty source code, see
 [ghostty-org/ghostty](https://github.com/ghostty-org/ghostty).
 
 ## Ubuntu users
 
-This repository only supports **Debian**.
+Ubuntu 26.04 and newer ship Ghostty in their official repositories, but that
+version can lag behind upstream. The packages here track the latest Ghostty
+release, and Noble (24.04 LTS) gets them too.
 
-Some Ubuntu versions already include Ghostty in their official repositories.
-For other Ubuntu versions, use the [Ghostty Ubuntu PPA](https://launchpad.net/~mkasberg/+archive/ubuntu/ghostty-ubuntu):
-
-```sh
-sudo add-apt-repository ppa:mkasberg/ghostty-ubuntu
-sudo apt update
-sudo apt install ghostty
-```
+Note that Noble is missing a few things newer releases have:
+- `gtk4-layer-shell` isn't packaged for it, so Ghostty bundles its own copy
+  (quick terminal on Wayland still works).
+- Its `debugedit` can't read the debug info Zig produces, so the Noble build is
+  stripped and has no `-dbgsym` package.
 
 ## Install/Update
 
-📖 **Step-by-step install guide:** [Debian](https://deb.griffo.io/install-latest-ghostty-in-debian.html)
+📖 **Step-by-step install guide:** [Debian](https://deb.griffo.io/install-latest-ghostty-in-debian.html) · [Ubuntu](https://deb.griffo.io/install-latest-ghostty-in-ubuntu.html)
 
-### The Debian way
+### The Debian and Ubuntu way
 
 > ⚠️ **From 1 October 2026, apt access requires a yearly subscription**
 > ([deb.griffo.io](https://deb.griffo.io)). To use this tool for free, download
@@ -96,7 +100,7 @@ The `-tip` packages can be installed alongside the stable `ghostty` package.
 
 ### Manual Installation
 
-1. Download the .deb package for your Debian version available on
+1. Download the .deb package for your Debian or Ubuntu version available on
    the [Releases](https://github.com/dariogriffo/ghostty-debian/releases) page.
 2. Install the downloaded .deb package.
 
@@ -109,7 +113,7 @@ To update to a new version, just follow any of the installation methods above. T
 
 ## Contributing
 
-I want to have an easy-to-install Ghostty package for Debian, so I'm doing what
+I want to have an easy-to-install Ghostty package for Debian and Ubuntu, so I'm doing what
 I can to make it happen. (Ghostty [relies on the
 community](https://ghostty.org/docs/install/binary) to produce non-macOS
 packages.) I'm sure the scripts I have so far can be improved, so please open an
@@ -117,7 +121,8 @@ issue or PR if you notice any problems!
 
 If you want to test locally, you should be able to run
 [build_ghostty_debian.sh](https://github.com/dariogriffo/ghostty-debian/blob/main/build_ghostty_debian.sh)
-on your own Debian system, only requirement is docker.
+or [build_ghostty_ubuntu.sh](https://github.com/dariogriffo/ghostty-debian/blob/main/build_ghostty_ubuntu.sh)
+on your own system, only requirement is docker.
 
 ## Roadmap
 
@@ -126,5 +131,5 @@ on your own Debian system, only requirement is docker.
 
 ## Disclaimer
 
-- This repo is not open for issues related to ghostty. This repo is only for _unofficial_ Debian packaging.
+- This repo is not open for issues related to ghostty. This repo is only for _unofficial_ Debian and Ubuntu packaging.
 - This repository is based on the amazing work of [Mike Kasberg](https://github.com/mkasberg) and his [Ghostty Ubuntu](https://github.com/mkasberg/ghostty-ubuntu) packages

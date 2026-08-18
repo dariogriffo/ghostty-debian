@@ -14,7 +14,7 @@ PACKAGE_NAME="ghostty"
 ORIG_TARBALL="${PACKAGE_NAME}_${GHOSTTY_VERSION}.orig.tar.gz"
 BUILD_DIR="${PACKAGE_NAME}-${GHOSTTY_VERSION}"
 
-echo "Creating Debian source packages for ghostty ${GHOSTTY_VERSION}-${BUILD_VERSION}..."
+echo "Creating Debian/Ubuntu source packages for ghostty ${GHOSTTY_VERSION}-${BUILD_VERSION}..."
 
 # Download upstream source tarball (shared .orig.tar.gz across all distributions)
 if [ ! -f "$ORIG_TARBALL" ]; then
@@ -62,7 +62,12 @@ for dist in "${DEBIAN_DISTS[@]}"; do
     build_source_package "$dist"
 done
 
-UBUNTU_DISTS=()
+echo ""
+echo "Building Ubuntu source packages..."
+UBUNTU_DISTS=("noble" "questing" "resolute")
+for dist in "${UBUNTU_DISTS[@]}"; do
+    build_source_package "$dist"
+done
 
 echo ""
 echo "Source packages created successfully!"

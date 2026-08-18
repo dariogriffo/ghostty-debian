@@ -2,6 +2,23 @@
 
 export GHOSTTY_VERSION ?= $(shell dpkg-parsechangelog -S Version | sed 's/-.*//')
 
+# Zig binary to build with (Debian/Ubuntu name it differently across releases)
+ZIG ?= zig
+
+# gtk4-layer-shell isn't packaged on every release we build for (Ubuntu noble).
+# Where the system library is missing, zig builds and ships its own copy.
+LAYER_SHELL_FLAG := $(if $(shell pkg-config --exists gtk4-layer-shell-0 && echo y),,-fno-sys=gtk4-layer-shell)
+
+# debugedit before 5.1 can't read the DWARF 5 that zig emits, which makes
+# dh_strip fail, so releases carrying an older one (Ubuntu noble) build with
+# the debug info stripped by zig and ship no -dbgsym package.
+ZIG_STRIP ?= false
+
+# ncurses-term ships the terminfo entry "ghostty" from 6.5 onwards, so we drop
+# ours to avoid a file conflict. Releases without it (Ubuntu noble) set this to
+# "no" and keep ours, otherwise nothing would provide the entry.
+NCURSES_HAS_GHOSTTY ?= yes
+
 %:
 	dh $@
 
@@ -14,7 +31,7 @@ override_dh_auto_build:
 override_dh_auto_install:
 	# Debian names it libbz2, not libbzip2
 	sed -i 's/linkSystemLibrary2("bzip2", dynamic_link_opts)/linkSystemLibrary2("bz2", dynamic_link_opts)/' src/build/SharedDeps.zig
-	DESTDIR=$(CURDIR)/debian/ghostty zig build \
+	DESTDIR=$(CURDIR)/debian/ghostty $(ZIG) build \
 		--summary all \
 		--prefix /usr \
 		--build-id \
@@ -22,15 +39,29 @@ override_dh_auto_install:
 		-Dcpu=baseline \
 		-Dpie=true \
 		-Demit-docs \
-		-Dstrip=false \
+		-Dstrip=$(ZIG_STRIP) \
 		-fsys=fontconfig \
+		$(LAYER_SHELL_FLAG) \
 		-Dversion-string=$(GHOSTTY_VERSION)
 	# Remove static libraries
 	find $(CURDIR)/debian/ghostty -name '*.a' -delete
+ifneq ($(LAYER_SHELL_FLAG),)
+	# The bundled gtk4-layer-shell is only there for ghostty to link against,
+	# so drop its development headers
+	rm -f $(CURDIR)/debian/ghostty/usr/include/gtk4-layer-shell.h \
+		$(CURDIR)/debian/ghostty/usr/include/gtk4-session-lock.h
+endif
+ifeq ($(ZIG_STRIP),true)
+	# -Dstrip doesn't cover the shared libraries, so strip them here too and
+	# leave dh_strip nothing to run the too-old debugedit over
+	find $(CURDIR)/debian/ghostty -name '*.so*' -type f -exec strip --strip-unneeded {} +
+endif
 	# terminfo: build produces x/xterm-ghostty (not in ncurses-term, ship it)
 	# and g/ghostty (already in ncurses-term, remove to avoid conflict)
+ifeq ($(NCURSES_HAS_GHOSTTY),yes)
 	rm $(CURDIR)/debian/ghostty/usr/share/terminfo/g/ghostty
 	rmdir $(CURDIR)/debian/ghostty/usr/share/terminfo/g
+endif
 	# Fix paths referencing build-time prefix
 	sed -i 's|\./zig-out||g' $(CURDIR)/debian/ghostty/usr/share/systemd/user/app-com.mitchellh.ghostty.service
 	sed -i 's|\./zig-out||g' $(CURDIR)/debian/ghostty/usr/share/applications/com.mitchellh.ghostty.desktop

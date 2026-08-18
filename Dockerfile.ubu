@@ -1,0 +1,109 @@
+ARG UBUNTU_DIST=noble
+FROM ubuntu:$UBUNTU_DIST
+
+ARG UBUNTU_DIST
+ARG GHOSTTY_VERSION
+ARG BUILD_VERSION
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install build deps + packaging tools.
+# No blueprint-compiler here: Ubuntu builds use the upstream release tarball,
+# which ships the pre-generated gresource files (noble only has 0.12, ghostty
+# needs >= 0.16 when building from a git checkout).
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl wget gpg ca-certificates lsb-release \
+    build-essential debhelper devscripts fakeroot pkgconf \
+    pandoc minisign gettext \
+    libonig-dev libbz2-dev \
+    libgtk-4-dev libadwaita-1-dev libxml2-utils libfontconfig-dev
+
+# gtk4-layer-shell is only packaged from Ubuntu 24.10 onwards. Where the system
+# library is missing (noble) zig builds and ships its own copy; debian/rules
+# detects that with pkg-config and debian/control is patched further down.
+RUN if apt-cache show libgtk4-layer-shell-dev > /dev/null 2>&1; then \
+        apt-get install -y --no-install-recommends libgtk4-layer-shell-dev; \
+    else \
+        echo "libgtk4-layer-shell-dev is not available on ${UBUNTU_DIST}"; \
+    fi
+
+# ncurses-term ships the "ghostty" terminfo entry from 6.5 onwards. Record
+# whether this release has it so debian/rules knows to keep ours or drop it.
+RUN apt-get install -y --no-install-recommends ncurses-term \
+    && if [ -e /usr/share/terminfo/g/ghostty ]; then \
+        echo yes > /ncurses-has-ghostty; \
+    else \
+        echo no > /ncurses-has-ghostty; \
+    fi
+
+# debugedit before 5.1 chokes on the DWARF 5 that zig emits, which breaks
+# dh_strip. Where it is too old (noble) zig strips the binaries itself and no
+# -dbgsym package is produced.
+RUN if dpkg --compare-versions "$(dpkg-query -W -f='${Version}' debugedit)" ge 1:5.1; then \
+        echo "false" > /zig-strip; \
+    else \
+        echo "true" > /zig-strip; \
+    fi
+
+# Install zig from griffo.io repo, falling back to Ubuntu's own zig0.15 for
+# releases the repo doesn't carry yet.
+RUN curl -sS https://deb.griffo.io/EA0F721D231FDD3A0A17B9AC7808B4DD62C41256.asc \
+    | gpg --dearmor --yes -o /etc/apt/trusted.gpg.d/deb.griffo.io.gpg \
+    && echo "deb https://deb.griffo.io/apt $(lsb_release -sc) main" \
+    | tee /etc/apt/sources.list.d/deb.griffo.io.list \
+    && apt-get update \
+    && if apt-cache show zig-oldstable > /dev/null 2>&1; then \
+        apt-get install -y zig-oldstable && echo zig > /zig-binary; \
+    else \
+        apt-get install -y zig0.15 && echo zig0.15 > /zig-binary; \
+    fi
+
+# Fetch the upstream release tarball and verify its minisign signature.
+# The public key is published in ghostty's PACKAGING.md.
+WORKDIR /build
+RUN wget -q "https://release.files.ghostty.org/${GHOSTTY_VERSION}/ghostty-${GHOSTTY_VERSION}.tar.gz" \
+    && wget -q "https://release.files.ghostty.org/${GHOSTTY_VERSION}/ghostty-${GHOSTTY_VERSION}.tar.gz.minisig" \
+    && minisign -Vm "ghostty-${GHOSTTY_VERSION}.tar.gz" \
+        -P RWQlAjJC23149WL2sEpT/l0QKy7hMIFhYdQOFy0Z7z7PbneUgvlsnYcV \
+    && tar -xzmf "ghostty-${GHOSTTY_VERSION}.tar.gz" \
+    && rm "ghostty-${GHOSTTY_VERSION}.tar.gz" "ghostty-${GHOSTTY_VERSION}.tar.gz.minisig"
+
+WORKDIR /build/ghostty-$GHOSTTY_VERSION
+
+# Copy debian packaging
+COPY debian/ debian/
+RUN chmod +x debian/rules
+
+# Drop gtk4-layer-shell from the dependencies on releases without it
+RUN if ! pkg-config --exists gtk4-layer-shell-0; then \
+        sed -i '/libgtk4-layer-shell/d' debian/control; \
+    fi
+
+# Generate debian/changelog with proper version and timestamp
+ENV DEBEMAIL="dariogriffo@gmail.com"
+ENV DEBFULLNAME="Dario Griffo"
+RUN rm -f debian/changelog && \
+    dch --create --package ghostty \
+    --newversion "${GHOSTTY_VERSION}-${BUILD_VERSION}~${UBUNTU_DIST}" \
+    --distribution "${UBUNTU_DIST}" \
+    "Unofficial Ubuntu package." && \
+    dch --append "https://ghostty.org/docs/install/release-notes/$(echo $GHOSTTY_VERSION | tr '.' '-')"
+
+# Build
+RUN ZIG="$(cat /zig-binary)" \
+    NCURSES_HAS_GHOSTTY="$(cat /ncurses-has-ghostty)" \
+    ZIG_STRIP="$(cat /zig-strip)" \
+    dpkg-buildpackage --build=binary --no-sign --no-check-builddeps
+
+# Stage the packages on their own so the build script doesn't have to copy the
+# whole source tree and zig cache out of the image. Ubuntu's debhelper names
+# the automatic debug package .ddeb, so rename it to .deb for the apt repo.
+RUN mkdir /output \
+    && mv /build/ghostty_*.deb /output/ \
+    && for f in /build/ghostty-dbgsym_*; do \
+        case "$f" in \
+            *.deb) mv "$f" /output/ ;; \
+            *.ddeb) mv "$f" "/output/$(basename "$f" .ddeb).deb" ;; \
+        esac; \
+    done \
+    && ls -la /output
