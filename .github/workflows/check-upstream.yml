@@ -1,1 +1,71 @@
+name: Check for new ghostty release
 
+on:
+  schedule:
+    # Hourly, offset to avoid the top-of-hour rush.
+    - cron: "17 * * * *"
+  workflow_dispatch: {}
+
+# Only one checker at a time.
+concurrency:
+  group: check-upstream
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: write   # required to dispatch release.yml
+
+jobs:
+  check:
+    name: Compare upstream vs published
+    runs-on: ubuntu-latest
+    steps:
+      - name: Detect and dispatch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          UPSTREAM_REPO: ghostty-org/ghostty
+        run: |
+          set -euo pipefail
+
+          # ghostty-org/ghostty publishes NO stable GitHub release -- its only
+          # release is the rolling "tip" prerelease, so releases/latest 404s.
+          # Read git tags instead and pick the highest stable v<semver>, which
+          # is exactly what build_src.sh downloads (refs/tags/v<version>).
+          up_ver=$(gh api "repos/${UPSTREAM_REPO}/tags?per_page=100" --paginate -q '.[].name' \
+            | grep -E '^v[0-9]+(\.[0-9]+)*$' \
+            | sed 's/^v//' \
+            | sort -V \
+            | tail -n1)
+          if [ -z "$up_ver" ]; then
+            echo "Could not read any stable tag from ${UPSTREAM_REPO}; aborting."
+            exit 1
+          fi
+          echo "Upstream: v${up_ver} -> ${up_ver}"
+
+          # Our latest published release is "<ver>+<build>"; 404 -> empty -> build it.
+          ours=$(gh api "repos/${GH_REPO}/releases/latest" -q .tag_name 2>/dev/null || echo "")
+          ours_ver="${ours%%+*}"
+          echo "Ours: ${ours:-<none>} -> ${ours_ver:-<none>}"
+
+          # Only move forward: dispatch when upstream is strictly newer than ours.
+          if [ -n "$ours_ver" ]; then
+            newest=$(printf '%s\n%s\n' "$up_ver" "$ours_ver" | sort -V | tail -n1)
+            if [ "$newest" = "$ours_ver" ]; then
+              echo "Up to date (ours ${ours_ver} >= upstream ${up_ver})."
+              exit 0
+            fi
+          fi
+
+          # Don't dispatch a duplicate while a build is already running/queued.
+          active=$(gh run list --workflow=release.yml --json status \
+            -q '[.[] | select(.status == "in_progress" or .status == "queued")] | length')
+          if [ "$active" -gt 0 ]; then
+            echo "A release.yml run is already active ($active); skipping this tick."
+            exit 0
+          fi
+
+          echo "New release detected: ${ours_ver:-<none>} -> ${up_ver}. Dispatching build."
+          gh workflow run release.yml \
+            -f ghostty_version="${up_ver}" \
+            -f build_version=1
