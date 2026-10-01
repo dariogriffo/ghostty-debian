@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 ARG UBUNTU_DIST=noble
 FROM ubuntu:$UBUNTU_DIST
 
@@ -45,17 +46,21 @@ RUN if dpkg --compare-versions "$(dpkg-query -W -f='${Version}' debugedit)" ge 1
         echo "true" > /zig-strip; \
     fi
 
-# Install zig from griffo.io repo, falling back to Ubuntu's own zig0.15 for
-# releases the repo doesn't carry yet.
-RUN curl -sS https://deb.griffo.io/EA0F721D231FDD3A0A17B9AC7808B4DD62C41256.asc \
+# Install zig from griffo.io repo (zig-stable is 0.16, which ghostty needs from
+# 1.4.0 on), falling back to Ubuntu's own zig0.16 for releases the repo doesn't
+# carry yet. The repo requires credentials; they arrive as a BuildKit secret
+# mounted only for this RUN, so they never land in a layer, the image history
+# or a build arg.
+RUN --mount=type=secret,id=apt_auth,target=/etc/apt/auth.conf.d/deb.griffo.io.conf,mode=0600,required=true \
+    curl -sS https://deb.griffo.io/EA0F721D231FDD3A0A17B9AC7808B4DD62C41256.asc \
     | gpg --dearmor --yes -o /etc/apt/trusted.gpg.d/deb.griffo.io.gpg \
     && echo "deb https://deb.griffo.io/apt $(lsb_release -sc) main" \
     | tee /etc/apt/sources.list.d/deb.griffo.io.list \
     && apt-get update \
-    && if apt-cache show zig-oldstable > /dev/null 2>&1; then \
-        apt-get install -y zig-oldstable && echo zig > /zig-binary; \
+    && if apt-cache show zig-stable > /dev/null 2>&1; then \
+        apt-get install -y zig-stable && echo zig > /zig-binary; \
     else \
-        apt-get install -y zig0.15 && echo zig0.15 > /zig-binary; \
+        apt-get install -y zig0.16 && echo zig0.16 > /zig-binary; \
     fi
 
 # Fetch the upstream release tarball and verify its minisign signature.
@@ -99,8 +104,8 @@ RUN ZIG="$(cat /zig-binary)" \
 # whole source tree and zig cache out of the image. Ubuntu's debhelper names
 # the automatic debug package .ddeb, so rename it to .deb for the apt repo.
 RUN mkdir /output \
-    && mv /build/ghostty_*.deb /output/ \
-    && for f in /build/ghostty-dbgsym_*; do \
+    && mv /build/ghostty_*.deb /build/libghostty-vt0_*.deb /build/libghostty-vt-dev_*.deb /output/ \
+    && for f in /build/ghostty-dbgsym_* /build/libghostty-vt0-dbgsym_*; do \
         case "$f" in \
             *.deb) mv "$f" /output/ ;; \
             *.ddeb) mv "$f" "/output/$(basename "$f" .ddeb).deb" ;; \

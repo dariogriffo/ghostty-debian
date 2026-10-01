@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 ARG DEBIAN_DIST=trixie
 FROM debian:$DEBIAN_DIST
 
@@ -15,13 +16,17 @@ RUN apt-get update && apt-get install -y -o APT::Immediate-Configure=false \
     libonig-dev libbz2-dev libgtk4-layer-shell-dev \
     libgtk-4-dev libadwaita-1-dev libxml2-utils libfontconfig-dev
 
-# Install zig from griffo.io repo
-RUN curl -sS https://deb.griffo.io/EA0F721D231FDD3A0A17B9AC7808B4DD62C41256.asc \
+# Install zig from griffo.io repo. zig-stable is 0.16, which ghostty needs from
+# 1.4.0 on (minimum_zig_version in build.zig.zon), same as the weekly build.
+# The repo requires credentials; they arrive as a BuildKit secret mounted only
+# for this RUN, so they never land in a layer, the image history or a build arg.
+RUN --mount=type=secret,id=apt_auth,target=/etc/apt/auth.conf.d/deb.griffo.io.conf,mode=0600,required=true \
+    curl -sS https://deb.griffo.io/EA0F721D231FDD3A0A17B9AC7808B4DD62C41256.asc \
     | gpg --dearmor --yes -o /etc/apt/trusted.gpg.d/deb.griffo.io.gpg \
     && echo "deb https://deb.griffo.io/apt $(lsb_release -sc) main" \
     | tee /etc/apt/sources.list.d/deb.griffo.io.list \
     && apt-get update \
-    && apt-get install -y zig-oldstable
+    && apt-get install -y zig-stable
 
 # Clone and checkout
 WORKDIR /build

@@ -19,6 +19,17 @@ ZIG_STRIP ?= false
 # "no" and keep ours, otherwise nothing would provide the entry.
 NCURSES_HAS_GHOSTTY ?= yes
 
+# libghostty-vt has its own SemVer (`lib_version` in upstream build.zig, e.g.
+# "0.1.0-dev"). Pass its release part so the SONAME and file names are clean,
+# like the weekly ghostty-tip build does. Releases without the option
+# (1.3.1 and older) don't get the flag.
+LIBGHOSTTY_VT_VERSION := $(shell grep -oP 'const lib_version = "\K[0-9]+\.[0-9]+\.[0-9]+' build.zig 2>/dev/null)
+LIB_VERSION_FLAG := $(if $(and $(LIBGHOSTTY_VT_VERSION),$(shell grep -qs '"lib-version-string"' src/build/Config.zig && echo y)),-Dlib-version-string=$(LIBGHOSTTY_VT_VERSION),)
+
+GHOSTTY := $(CURDIR)/debian/ghostty
+LIBVT := $(CURDIR)/debian/libghostty-vt0
+LIBVT_DEV := $(CURDIR)/debian/libghostty-vt-dev
+
 %:
 	dh $@
 
@@ -31,7 +42,7 @@ override_dh_auto_build:
 override_dh_auto_install:
 	# Debian names it libbz2, not libbzip2
 	sed -i 's/linkSystemLibrary2("bzip2", dynamic_link_opts)/linkSystemLibrary2("bz2", dynamic_link_opts)/' src/build/SharedDeps.zig
-	DESTDIR=$(CURDIR)/debian/ghostty $(ZIG) build \
+	DESTDIR=$(GHOSTTY) $(ZIG) build \
 		--summary all \
 		--prefix /usr \
 		--build-id \
@@ -42,32 +53,49 @@ override_dh_auto_install:
 		-Dstrip=$(ZIG_STRIP) \
 		-fsys=fontconfig \
 		$(LAYER_SHELL_FLAG) \
+		$(LIB_VERSION_FLAG) \
 		-Dversion-string=$(GHOSTTY_VERSION)
-	# Remove static libraries
-	find $(CURDIR)/debian/ghostty -name '*.a' -delete
+	# Remove static libraries, except libghostty-vt's which ships in -dev
+	find $(GHOSTTY) -name '*.a' ! -name 'libghostty-vt.a' -delete
+	# Split libghostty-vt out of ghostty, like the weekly ghostty-tip build:
+	# the runtime library goes to libghostty-vt0; headers, the static library,
+	# the unversioned .so link and the .pc files go to libghostty-vt-dev
+	install -d $(LIBVT)/usr/lib $(LIBVT_DEV)/usr/lib/pkgconfig $(LIBVT_DEV)/usr/include
+	mv $(GHOSTTY)/usr/lib/libghostty-vt.so.* $(LIBVT)/usr/lib/
+	mv $(GHOSTTY)/usr/lib/libghostty-vt.so $(LIBVT_DEV)/usr/lib/
+	[ ! -e $(GHOSTTY)/usr/lib/libghostty-vt.a ] || mv $(GHOSTTY)/usr/lib/libghostty-vt.a $(LIBVT_DEV)/usr/lib/
+	mv $(GHOSTTY)/usr/include/ghostty $(LIBVT_DEV)/usr/include/
+	mv $(GHOSTTY)/usr/share/pkgconfig/libghostty-vt*.pc $(LIBVT_DEV)/usr/lib/pkgconfig/
+	rmdir --ignore-fail-on-non-empty $(GHOSTTY)/usr/include $(GHOSTTY)/usr/share/pkgconfig $(GHOSTTY)/usr/lib
 ifneq ($(LAYER_SHELL_FLAG),)
 	# The bundled gtk4-layer-shell is only there for ghostty to link against,
 	# so drop its development headers
-	rm -f $(CURDIR)/debian/ghostty/usr/include/gtk4-layer-shell.h \
-		$(CURDIR)/debian/ghostty/usr/include/gtk4-session-lock.h
+	rm -f $(GHOSTTY)/usr/include/gtk4-layer-shell.h \
+		$(GHOSTTY)/usr/include/gtk4-session-lock.h
+	rmdir --ignore-fail-on-non-empty $(GHOSTTY)/usr/include
 endif
 ifeq ($(ZIG_STRIP),true)
 	# -Dstrip doesn't cover the shared libraries, so strip them here too and
 	# leave dh_strip nothing to run the too-old debugedit over
-	find $(CURDIR)/debian/ghostty -name '*.so*' -type f -exec strip --strip-unneeded {} +
+	find $(GHOSTTY) $(LIBVT) -name '*.so*' -type f -exec strip --strip-unneeded {} +
 endif
 	# terminfo: build produces x/xterm-ghostty (not in ncurses-term, ship it)
 	# and g/ghostty (already in ncurses-term, remove to avoid conflict)
 ifeq ($(NCURSES_HAS_GHOSTTY),yes)
-	rm $(CURDIR)/debian/ghostty/usr/share/terminfo/g/ghostty
-	rmdir $(CURDIR)/debian/ghostty/usr/share/terminfo/g
+	rm $(GHOSTTY)/usr/share/terminfo/g/ghostty
+	rmdir $(GHOSTTY)/usr/share/terminfo/g
 endif
 	# Fix paths referencing build-time prefix
-	sed -i 's|\./zig-out||g' $(CURDIR)/debian/ghostty/usr/share/systemd/user/app-com.mitchellh.ghostty.service
-	sed -i 's|\./zig-out||g' $(CURDIR)/debian/ghostty/usr/share/applications/com.mitchellh.ghostty.desktop
-	sed -i 's|\./zig-out||g' $(CURDIR)/debian/ghostty/usr/share/dbus-1/services/com.mitchellh.ghostty.service
+	sed -i 's|\./zig-out||g' $(GHOSTTY)/usr/share/systemd/user/app-com.mitchellh.ghostty.service
+	sed -i 's|\./zig-out||g' $(GHOSTTY)/usr/share/applications/com.mitchellh.ghostty.desktop
+	sed -i 's|\./zig-out||g' $(GHOSTTY)/usr/share/dbus-1/services/com.mitchellh.ghostty.service
 	# Debian puts zsh completions in vendor-completions
-	mv $(CURDIR)/debian/ghostty/usr/share/zsh/site-functions $(CURDIR)/debian/ghostty/usr/share/zsh/vendor-completions
+	mv $(GHOSTTY)/usr/share/zsh/site-functions $(GHOSTTY)/usr/share/zsh/vendor-completions
+
+override_dh_strip:
+	# zig's archive members carry .zig-cache/ paths that binutils strip can't
+	# extract, so ship the static library as zig built it
+	dh_strip -Xlibghostty-vt.a
 
 override_dh_auto_test:
 	# Skip tests

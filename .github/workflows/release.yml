@@ -29,6 +29,9 @@ jobs:
         run: ./validate_license.sh ${{ inputs.ghostty_version }}
 
       - name: Build Ghostty
+        env:
+          DEB_GRIFFO_LOGIN: ${{ secrets.DEB_GRIFFO_LOGIN }}
+          DEB_GRIFFO_PASSWORD: ${{ secrets.DEB_GRIFFO_PASSWORD }}
         run: ./build_ghostty_debian.sh ${{ inputs.ghostty_version }} ${{ inputs.build_version }}
 
       - name: Upload Artifact
@@ -38,6 +41,8 @@ jobs:
           path: |
             ghostty_*.deb
             ghostty-dbgsym_*.deb
+            libghostty-vt0_*.deb
+            libghostty-vt-dev_*.deb
 
   build-ghostty-ubuntu:
     name: Build Ubuntu
@@ -52,6 +57,9 @@ jobs:
         run: ./validate_license.sh ${{ inputs.ghostty_version }}
 
       - name: Build Ghostty
+        env:
+          DEB_GRIFFO_LOGIN: ${{ secrets.DEB_GRIFFO_LOGIN }}
+          DEB_GRIFFO_PASSWORD: ${{ secrets.DEB_GRIFFO_PASSWORD }}
         run: ./build_ghostty_ubuntu.sh ${{ inputs.ghostty_version }} ${{ inputs.build_version }}
 
       - name: Upload Artifact
@@ -61,6 +69,8 @@ jobs:
           path: |
             ghostty_*.deb
             ghostty-dbgsym_*.deb
+            libghostty-vt0_*.deb
+            libghostty-vt-dev_*.deb
 
   build-src:
     name: Build Source Package
@@ -112,6 +122,8 @@ jobs:
           files: |
             ghostty_*.deb
             ghostty-dbgsym_*.deb
+            libghostty-vt0_*.deb
+            libghostty-vt-dev_*.deb
             ghostty_*.dsc
             ghostty_*.orig.tar.gz
             ghostty_*.debian.tar.xz
