@@ -58,7 +58,7 @@ RUN --mount=type=secret,id=apt_auth,target=/etc/apt/auth.conf.d/deb.griffo.io.co
     | tee /etc/apt/sources.list.d/deb.griffo.io.list \
     && apt-get update \
     && if apt-cache show zig-stable > /dev/null 2>&1; then \
-        apt-get install -y zig-stable && echo zig > /zig-binary; \
+        apt-get install -y zig-oldstable && echo zig > /zig-binary; \
     else \
         apt-get install -y zig0.16 && echo zig0.16 > /zig-binary; \
     fi
