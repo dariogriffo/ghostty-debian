@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 GHOSTTY_VERSION=$1
 BUILD_VERSION=$2
 # deb.griffo.io needs credentials. Build the apt auth file in memory (printf is

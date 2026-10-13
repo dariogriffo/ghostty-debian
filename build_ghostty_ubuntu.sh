@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 GHOSTTY_VERSION=$1
 BUILD_VERSION=$2
 # deb.griffo.io needs credentials. Build the apt auth file in memory (printf is
@@ -30,7 +31,7 @@ do
   mv ./output-$UBUNTU_DIST/ghostty-dbgsym_*.deb ./ 2>/dev/null || true
   # _ubu suffix: the apt repo's download_ubuntu_file.sh expects it, and it
   # keeps the Ubuntu assets obvious next to the Debian ones on the release
-  for f in ./ghostty*_${UBUNTU_DIST}_*.deb ./libghostty-vt*_${UBUNTU_DIST}_*.deb; do
+  for f in ./ghostty*~${UBUNTU_DIST}_*.deb ./libghostty-vt*~${UBUNTU_DIST}_*.deb; do
     case "$f" in *_ubu.deb) ;; *) mv "$f" "${f%.deb}_ubu.deb" ;; esac
   done
   rm -rf ./output-$UBUNTU_DIST
