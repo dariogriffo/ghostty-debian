@@ -16,7 +16,7 @@ Build-Depends: debhelper-compat (= 13),
                pkgconf
 
 Package: ghostty
-Architecture: amd64
+Architecture: amd64 arm64
 Depends: ${shlibs:Depends}, ${misc:Depends},
          libadwaita-1-0,
          libc6,
@@ -38,7 +38,7 @@ Description: Fast, feature-rich, and cross-platform terminal emulator
 
 Package: libghostty-vt0
 Section: libs
-Architecture: amd64
+Architecture: amd64 arm64
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Breaks: ghostty (<< 1.4.0~)
 Replaces: ghostty (<< 1.4.0~)
@@ -49,7 +49,7 @@ Description: Ghostty terminal VT core library (shared runtime)
 
 Package: libghostty-vt-dev
 Section: libdevel
-Architecture: amd64
+Architecture: amd64 arm64
 Depends: libghostty-vt0 (= ${binary:Version}), ${misc:Depends}
 Breaks: ghostty (<< 1.4.0~)
 Replaces: ghostty (<< 1.4.0~)

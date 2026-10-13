@@ -42,6 +42,8 @@ Currently supported Ubuntu releases are:
 - Questing Quokka (25.10)
 - Resolute Raccoon (26.04 LTS)
 
+Packages are built for `amd64` and `arm64`.
+
 This is an unofficial community project to provide a package that's easy to
 install on Debian and Ubuntu. If you're looking for the Ghostty source code, see
 [ghostty-org/ghostty](https://github.com/ghostty-org/ghostty).

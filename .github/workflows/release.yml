@@ -17,8 +17,16 @@ permissions:
 
 jobs:
   build-ghostty:
-    name: Build Debian
-    runs-on: ubuntu-latest
+    name: Build Debian (${{ matrix.arch }})
+    # Native runners per architecture: zig under QEMU emulation is far too slow
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-latest
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
     steps:
       - name: Checkout ghostty-debian
         uses: actions/checkout@v4
@@ -37,7 +45,7 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: artifact
+          name: artifact-${{ matrix.arch }}
           path: |
             ghostty_*.deb
             ghostty-dbgsym_*.deb
@@ -45,8 +53,16 @@ jobs:
             libghostty-vt-dev_*.deb
 
   build-ghostty-ubuntu:
-    name: Build Ubuntu
-    runs-on: ubuntu-latest
+    name: Build Ubuntu (${{ matrix.arch }})
+    # Native runners per architecture: zig under QEMU emulation is far too slow
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-latest
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
     steps:
       - name: Checkout ghostty-debian
         uses: actions/checkout@v4
@@ -65,7 +81,7 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ubuntu-artifact
+          name: ubuntu-artifact-${{ matrix.arch }}
           path: |
             ghostty_*.deb
             ghostty-dbgsym_*.deb
@@ -103,12 +119,14 @@ jobs:
       - name: Download Debian binary artifacts
         uses: actions/download-artifact@v4
         with:
-          name: artifact
+          pattern: artifact-*
+          merge-multiple: true
 
       - name: Download Ubuntu binary artifacts
         uses: actions/download-artifact@v4
         with:
-          name: ubuntu-artifact
+          pattern: ubuntu-artifact-*
+          merge-multiple: true
 
       - name: Download source artifacts
         uses: actions/download-artifact@v4
