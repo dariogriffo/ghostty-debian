@@ -16,8 +16,20 @@ permissions:
   contents: write
 
 jobs:
+  check-tag:
+    name: Check upstream tag exists
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check ghostty v${{ inputs.ghostty_version }} is tagged upstream
+        run: |
+          if ! git ls-remote --exit-code --tags https://github.com/ghostty-org/ghostty "refs/tags/v${{ inputs.ghostty_version }}" > /dev/null; then
+            echo "::error::ghostty-org/ghostty has no tag v${{ inputs.ghostty_version }} (not released yet?)"
+            exit 1
+          fi
+
   build-ghostty:
     name: Build Debian (${{ matrix.arch }})
+    needs: check-tag
     # Native runners per architecture: zig under QEMU emulation is far too slow
     strategy:
       matrix:
@@ -54,6 +66,7 @@ jobs:
 
   build-ghostty-ubuntu:
     name: Build Ubuntu (${{ matrix.arch }})
+    needs: check-tag
     # Native runners per architecture: zig under QEMU emulation is far too slow
     strategy:
       matrix:
@@ -90,6 +103,7 @@ jobs:
 
   build-src:
     name: Build Source Package
+    needs: check-tag
     runs-on: ubuntu-latest
     steps:
       - name: Checkout ghostty-debian
