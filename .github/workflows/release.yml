@@ -28,7 +28,7 @@ jobs:
           fi
 
   build-ghostty:
-    name: Build Debian (${{ matrix.arch }})
+    name: Build (${{ matrix.arch }})
     needs: check-tag
     # Native runners per architecture: zig under QEMU emulation is far too slow
     strategy:
@@ -64,43 +64,6 @@ jobs:
             libghostty-vt0_*.deb
             libghostty-vt-dev_*.deb
 
-  build-ghostty-ubuntu:
-    name: Build Ubuntu (${{ matrix.arch }})
-    needs: check-tag
-    # Native runners per architecture: zig under QEMU emulation is far too slow
-    strategy:
-      matrix:
-        include:
-          - arch: amd64
-            runner: ubuntu-latest
-          - arch: arm64
-            runner: ubuntu-24.04-arm
-    runs-on: ${{ matrix.runner }}
-    steps:
-      - name: Checkout ghostty-debian
-        uses: actions/checkout@v4
-
-      - name: Validate upstream license permits paid distribution
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: ./validate_license.sh ${{ inputs.ghostty_version }}
-
-      - name: Build Ghostty
-        env:
-          DEB_GRIFFO_LOGIN: ${{ secrets.DEB_GRIFFO_LOGIN }}
-          DEB_GRIFFO_PASSWORD: ${{ secrets.DEB_GRIFFO_PASSWORD }}
-        run: ./build_ghostty_ubuntu.sh ${{ inputs.ghostty_version }} ${{ inputs.build_version }}
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ubuntu-artifact-${{ matrix.arch }}
-          path: |
-            ghostty_*.deb
-            ghostty-dbgsym_*.deb
-            libghostty-vt0_*.deb
-            libghostty-vt-dev_*.deb
-
   build-src:
     name: Build Source Package
     needs: check-tag
@@ -128,18 +91,12 @@ jobs:
     name: Release Ghostty for Debian and Ubuntu
     if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    needs: [build-ghostty, build-ghostty-ubuntu, build-src]
+    needs: [build-ghostty, build-src]
     steps:
-      - name: Download Debian binary artifacts
+      - name: Download binary artifacts
         uses: actions/download-artifact@v4
         with:
           pattern: artifact-*
-          merge-multiple: true
-
-      - name: Download Ubuntu binary artifacts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: ubuntu-artifact-*
           merge-multiple: true
 
       - name: Download source artifacts

@@ -38,7 +38,6 @@ Currently supported Debian distros are:
 - Sid (unstable)
 
 Currently supported Ubuntu releases are:
-- Noble Numbat (24.04 LTS)
 - Questing Quokka (25.10)
 - Resolute Raccoon (26.04 LTS)
 
@@ -52,13 +51,17 @@ install on Debian and Ubuntu. If you're looking for the Ghostty source code, see
 
 Ubuntu 26.04 and newer ship Ghostty in their official repositories, but that
 version can lag behind upstream. The packages here track the latest Ghostty
-release, and Noble (24.04 LTS) gets them too.
+release.
 
-Note that Noble is missing a few things newer releases have:
-- `gtk4-layer-shell` isn't packaged for it, so Ghostty bundles its own copy
-  (quick terminal on Wayland still works).
-- Its `debugedit` can't read the debug info Zig produces, so the Noble build is
-  stripped and has no `-dbgsym` package.
+Noble (24.04 LTS) is no longer supported: from 1.4.0 on Ghostty needs GTK 4.18
+and libadwaita 1.7, and Noble only has 4.14 and 1.5.
+
+## One package for every release
+
+Each version is built once per architecture, on Trixie, and named
+`<version>-<build>~griffo`. Its libraries keep their names and only get newer
+on the other Debian and Ubuntu releases above, so the same .deb installs on all
+of them.
 
 ## Install/Update
 
@@ -102,8 +105,9 @@ The `-tip` packages can be installed alongside the stable `ghostty` package.
 
 ### Manual Installation
 
-1. Download the .deb package for your Debian or Ubuntu version available on
-   the [Releases](https://github.com/dariogriffo/ghostty-debian/releases) page.
+1. Download the .deb package for your architecture from the
+   [Releases](https://github.com/dariogriffo/ghostty-debian/releases) page.
+   The same file works on every supported Debian and Ubuntu release.
 2. Install the downloaded .deb package.
 
 ```sh
@@ -123,7 +127,6 @@ issue or PR if you notice any problems!
 
 If you want to test locally, you should be able to run
 [build_ghostty_debian.sh](https://github.com/dariogriffo/ghostty-debian/blob/main/build_ghostty_debian.sh)
-or [build_ghostty_ubuntu.sh](https://github.com/dariogriffo/ghostty-debian/blob/main/build_ghostty_ubuntu.sh)
 on your own system, only requirement is docker.
 
 ## Roadmap

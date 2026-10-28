@@ -1,8 +1,9 @@
 # syntax=docker/dockerfile:1
-ARG DEBIAN_DIST=trixie
-FROM debian:$DEBIAN_DIST
+# One build for every suite, on the oldest one ghostty still supports: the
+# libraries it links against keep their names and only get newer on forky,
+# sid, questing and resolute, so a trixie build installs on all of them.
+FROM debian:trixie
 
-ARG DEBIAN_DIST
 ARG GHOSTTY_VERSION
 ARG BUILD_VERSION
 
@@ -19,8 +20,8 @@ RUN apt-get update && apt-get install -y -o APT::Immediate-Configure=false \
     libonig-dev libbz2-dev libgtk4-layer-shell-dev \
     libgtk-4-dev libadwaita-1-dev libxml2-utils libfontconfig-dev
 
-# Install zig from griffo.io repo. zig-stable is 0.16, which ghostty needs from
-# 1.4.0 on (minimum_zig_version in build.zig.zon), same as the weekly build.
+# Install zig from griffo.io repo. Ghostty needs zig >= 0.16 from 1.4.0 on
+# (minimum_zig_version in build.zig.zon); zig-stable is 0.17 now and builds it.
 # The repo requires credentials; they arrive as a BuildKit secret mounted only
 # for this RUN, so they never land in a layer, the image history or a build arg.
 RUN --mount=type=secret,id=apt_auth,target=/etc/apt/auth.conf.d/deb.griffo.io.conf,mode=0600,required=true \
@@ -47,13 +48,15 @@ WORKDIR /build/ghostty-$GHOSTTY_VERSION
 COPY debian/ debian/
 RUN chmod +x debian/rules
 
-# Generate debian/changelog with proper version and timestamp
+# Generate debian/changelog with proper version and timestamp. The fixed
+# ~griffo tag replaces ~<suite>: the ~ keeps it below a distro's own build of
+# the same version, and the apt repo links the one file into every suite.
 ENV DEBEMAIL="dariogriffo@gmail.com"
 ENV DEBFULLNAME="Dario Griffo"
 RUN rm -f debian/changelog && \
     dch --create --package ghostty \
-    --newversion "${GHOSTTY_VERSION}-${BUILD_VERSION}~${DEBIAN_DIST}" \
-    --distribution "${DEBIAN_DIST}" \
+    --newversion "${GHOSTTY_VERSION}-${BUILD_VERSION}~griffo" \
+    --distribution stable \
     "Unofficial Debian package." && \
     dch --append "https://ghostty.org/docs/install/release-notes/$(echo $GHOSTTY_VERSION | tr '.' '-')"
 

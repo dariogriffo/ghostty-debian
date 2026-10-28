@@ -10,23 +10,19 @@ BUILD_VERSION=$2
 APT_AUTH=$(printf 'machine deb.griffo.io\nlogin %s\npassword %s\n' \
   "$DEB_GRIFFO_LOGIN" "$DEB_GRIFFO_PASSWORD")
 export APT_AUTH
-declare -a arr=("trixie" "forky" "sid")
-for i in "${arr[@]}"
-do
-  DEBIAN_DIST=$i
-  # --network=host: podman's private networking can't resolve DNS for zig's
-  # dependency fetcher. Also works for docker.
-  docker build . -t ghostty-$DEBIAN_DIST --network=host \
-    --secret id=apt_auth,env=APT_AUTH \
-    --build-arg GHOSTTY_VERSION=$GHOSTTY_VERSION \
-    --build-arg DEBIAN_DIST=$DEBIAN_DIST \
-    --build-arg BUILD_VERSION=$BUILD_VERSION
-  id="$(docker create ghostty-$DEBIAN_DIST)"
-  docker cp $id:/build/ ./output-$DEBIAN_DIST/
-  docker rm $id
-  # Collect artifacts
-  mv ./output-$DEBIAN_DIST/ghostty_*.deb ./
-  mv ./output-$DEBIAN_DIST/ghostty-dbgsym_*.deb ./
-  mv ./output-$DEBIAN_DIST/libghostty-vt0_*.deb ./output-$DEBIAN_DIST/libghostty-vt-dev_*.deb ./
-  rm -rf ./output-$DEBIAN_DIST
-done
+# One build for every Debian and Ubuntu suite (see the Dockerfile), versioned
+# <ver>-<build>~griffo.
+# --network=host: podman's private networking can't resolve DNS for zig's
+# dependency fetcher. Also works for docker.
+docker build . -t ghostty --network=host \
+  --secret id=apt_auth,env=APT_AUTH \
+  --build-arg GHOSTTY_VERSION=$GHOSTTY_VERSION \
+  --build-arg BUILD_VERSION=$BUILD_VERSION
+id="$(docker create ghostty)"
+docker cp $id:/build/ ./output/
+docker rm $id
+# Collect artifacts
+mv ./output/ghostty_*.deb ./
+mv ./output/ghostty-dbgsym_*.deb ./
+mv ./output/libghostty-vt0_*.deb ./output/libghostty-vt-dev_*.deb ./
+rm -rf ./output
