@@ -10,7 +10,9 @@ BUILD_VERSION=$2
 APT_AUTH=$(printf 'machine deb.griffo.io\nlogin %s\npassword %s\n' \
   "$DEB_GRIFFO_LOGIN" "$DEB_GRIFFO_PASSWORD")
 export APT_AUTH
-declare -a arr=("noble" "questing" "resolute")
+# No noble: ghostty 1.4.0 needs GTK >= 4.18 and libadwaita >= 1.7, and noble
+# only has 4.14 and 1.5.
+declare -a arr=("questing" "resolute")
 for i in "${arr[@]}"
 do
   UBUNTU_DIST=$i

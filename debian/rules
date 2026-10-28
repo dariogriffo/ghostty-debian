@@ -80,10 +80,10 @@ ifeq ($(ZIG_STRIP),true)
 	find $(GHOSTTY) $(LIBVT) -name '*.so*' -type f -exec strip --strip-unneeded {} +
 endif
 	# terminfo: build produces x/xterm-ghostty (not in ncurses-term, ship it)
-	# and g/ghostty (already in ncurses-term, remove to avoid conflict)
+	# and g/ghostty (already in ncurses-term, remove to avoid conflict).
+	# The 1.4.0 build doesn't produce g/ghostty, so don't require it.
 ifeq ($(NCURSES_HAS_GHOSTTY),yes)
-	rm $(GHOSTTY)/usr/share/terminfo/g/ghostty
-	rmdir $(GHOSTTY)/usr/share/terminfo/g
+	rm -rf $(GHOSTTY)/usr/share/terminfo/g
 endif
 	# Fix paths referencing build-time prefix
 	sed -i 's|\./zig-out||g' $(GHOSTTY)/usr/share/systemd/user/app-com.mitchellh.ghostty.service
