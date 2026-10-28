@@ -9,10 +9,13 @@ ARG BUILD_VERSION
 # Install build deps + packaging tools
 # APT::Immediate-Configure=false works around a dependency-ordering bug in
 # sid's tpm2-tss/systemd-tpm stack (libtss2-tcti-cmd0t64 fails to configure)
+# No blueprint-compiler here: we build from the upstream release tarball, which
+# ships the pre-generated gresource files (trixie only has 0.16, ghostty needs
+# >= 0.20 when building from a git checkout).
 RUN apt-get update && apt-get install -y -o APT::Immediate-Configure=false \
-    git curl wget gpg lsb-release \
+    curl wget gpg lsb-release \
     build-essential debhelper devscripts fakeroot \
-    blueprint-compiler pandoc minisign \
+    pandoc minisign \
     libonig-dev libbz2-dev libgtk4-layer-shell-dev \
     libgtk-4-dev libadwaita-1-dev libxml2-utils libfontconfig-dev
 
@@ -28,11 +31,17 @@ RUN --mount=type=secret,id=apt_auth,target=/etc/apt/auth.conf.d/deb.griffo.io.co
     && apt-get update \
     && apt-get install -y zig-stable
 
-# Clone and checkout
+# Fetch the upstream release tarball and verify its minisign signature.
+# The public key is published in ghostty's PACKAGING.md.
 WORKDIR /build
-RUN git clone https://github.com/ghostty-org/ghostty
-WORKDIR /build/ghostty
-RUN git checkout v$GHOSTTY_VERSION
+RUN wget -q "https://release.files.ghostty.org/${GHOSTTY_VERSION}/ghostty-${GHOSTTY_VERSION}.tar.gz" \
+    && wget -q "https://release.files.ghostty.org/${GHOSTTY_VERSION}/ghostty-${GHOSTTY_VERSION}.tar.gz.minisig" \
+    && minisign -Vm "ghostty-${GHOSTTY_VERSION}.tar.gz" \
+        -P RWQlAjJC23149WL2sEpT/l0QKy7hMIFhYdQOFy0Z7z7PbneUgvlsnYcV \
+    && tar -xzmf "ghostty-${GHOSTTY_VERSION}.tar.gz" \
+    && rm "ghostty-${GHOSTTY_VERSION}.tar.gz" "ghostty-${GHOSTTY_VERSION}.tar.gz.minisig"
+
+WORKDIR /build/ghostty-$GHOSTTY_VERSION
 
 # Copy debian packaging
 COPY debian/ debian/
