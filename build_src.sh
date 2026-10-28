@@ -16,6 +16,20 @@ BUILD_DIR="${PACKAGE_NAME}-${GHOSTTY_VERSION}"
 
 echo "Creating Debian/Ubuntu source packages for ghostty ${GHOSTTY_VERSION}-${BUILD_VERSION}..."
 
+# A rebuild of an upstream version already released here (a +N build bump)
+# must ship the very same orig tarball: the pool holds one per upstream
+# version and reprepro refuses a different one, and nothing guarantees the
+# archive download is byte-identical next time. Reuse the earlier release's copy.
+if [ ! -f "$ORIG_TARBALL" ]; then
+    for ((b = BUILD_VERSION - 1; b >= 1; b--)); do
+        if wget -q "https://github.com/dariogriffo/ghostty-debian/releases/download/${GHOSTTY_VERSION}%2B${b}/${ORIG_TARBALL}" -O "$ORIG_TARBALL"; then
+            echo "  Reusing $ORIG_TARBALL from release ${GHOSTTY_VERSION}+${b}"
+            break
+        fi
+        rm -f "$ORIG_TARBALL"
+    done
+fi
+
 # Download upstream source tarball (shared .orig.tar.gz across all distributions)
 if [ ! -f "$ORIG_TARBALL" ]; then
     echo "Downloading upstream source from GitHub..."
@@ -64,7 +78,8 @@ done
 
 echo ""
 echo "Building Ubuntu source packages..."
-UBUNTU_DISTS=("noble" "questing" "resolute")
+# No noble, as in build_ghostty_ubuntu.sh
+UBUNTU_DISTS=("questing" "resolute")
 for dist in "${UBUNTU_DISTS[@]}"; do
     build_source_package "$dist"
 done
