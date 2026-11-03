@@ -1,9 +1,8 @@
 # syntax=docker/dockerfile:1
-# One build for every suite, on the oldest one ghostty still supports: the
-# libraries it links against keep their names and only get newer on forky,
-# sid, questing and resolute, so a trixie build installs on all of them.
-FROM debian:trixie
+ARG DEBIAN_DIST=trixie
+FROM debian:$DEBIAN_DIST
 
+ARG DEBIAN_DIST
 ARG GHOSTTY_VERSION
 ARG BUILD_VERSION
 
@@ -48,15 +47,13 @@ WORKDIR /build/ghostty-$GHOSTTY_VERSION
 COPY debian/ debian/
 RUN chmod +x debian/rules
 
-# Generate debian/changelog with proper version and timestamp. The fixed
-# ~griffo tag replaces ~<suite>: the ~ keeps it below a distro's own build of
-# the same version, and the apt repo links the one file into every suite.
+# Generate debian/changelog with proper version and timestamp
 ENV DEBEMAIL="dariogriffo@gmail.com"
 ENV DEBFULLNAME="Dario Griffo"
 RUN rm -f debian/changelog && \
     dch --create --package ghostty \
-    --newversion "${GHOSTTY_VERSION}-${BUILD_VERSION}~griffo" \
-    --distribution stable \
+    --newversion "${GHOSTTY_VERSION}-${BUILD_VERSION}~${DEBIAN_DIST}" \
+    --distribution "${DEBIAN_DIST}" \
     "Unofficial Debian package." && \
     dch --append "https://ghostty.org/docs/install/release-notes/$(echo $GHOSTTY_VERSION | tr '.' '-')"
 

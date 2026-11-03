@@ -40,9 +40,10 @@ else
 fi
 
 build_source_package() {
-    local FULL_VERSION="${GHOSTTY_VERSION}-${BUILD_VERSION}~griffo"
+    local dist=$1
+    local FULL_VERSION="${GHOSTTY_VERSION}-${BUILD_VERSION}~${dist}"
 
-    echo "  Building source package ${FULL_VERSION}..."
+    echo "  Building source package for ${dist} (${FULL_VERSION})..."
 
     # Clean and recreate build directory from orig tarball
     rm -rf "$BUILD_DIR"
@@ -52,9 +53,9 @@ build_source_package() {
     # Copy Debian packaging directory
     cp -r debian "$BUILD_DIR/"
 
-    # Generate the changelog (overwrites placeholder)
+    # Generate distribution-specific changelog (overwrites placeholder)
     cat > "$BUILD_DIR/debian/changelog" << EOF
-ghostty (${FULL_VERSION}) stable; urgency=medium
+ghostty (${FULL_VERSION}) ${dist}; urgency=medium
 
   * New upstream release ${GHOSTTY_VERSION}.
 
@@ -69,8 +70,19 @@ EOF
 }
 
 echo ""
-# One source package for every suite, as with the binaries (see the Dockerfile).
-build_source_package
+echo "Building Debian source packages..."
+DEBIAN_DISTS=("trixie" "forky" "sid")
+for dist in "${DEBIAN_DISTS[@]}"; do
+    build_source_package "$dist"
+done
+
+echo ""
+echo "Building Ubuntu source packages..."
+# No noble, as in build_ghostty_ubuntu.sh
+UBUNTU_DISTS=("questing" "resolute")
+for dist in "${UBUNTU_DISTS[@]}"; do
+    build_source_package "$dist"
+done
 
 echo ""
 echo "Source packages created successfully!"

@@ -56,13 +56,6 @@ release.
 Noble (24.04 LTS) is no longer supported: from 1.4.0 on Ghostty needs GTK 4.18
 and libadwaita 1.7, and Noble only has 4.14 and 1.5.
 
-## One package for every release
-
-Each version is built once per architecture, on Trixie, and named
-`<version>-<build>~griffo`. Its libraries keep their names and only get newer
-on the other Debian and Ubuntu releases above, so the same .deb installs on all
-of them.
-
 ## Install/Update
 
 📖 **Step-by-step install guide:** [Debian](https://deb.griffo.io/install-latest-ghostty-in-debian.html) · [Ubuntu](https://deb.griffo.io/install-latest-ghostty-in-ubuntu.html)
@@ -105,9 +98,8 @@ The `-tip` packages can be installed alongside the stable `ghostty` package.
 
 ### Manual Installation
 
-1. Download the .deb package for your architecture from the
-   [Releases](https://github.com/dariogriffo/ghostty-debian/releases) page.
-   The same file works on every supported Debian and Ubuntu release.
+1. Download the .deb package for your Debian or Ubuntu version available on
+   the [Releases](https://github.com/dariogriffo/ghostty-debian/releases) page.
 2. Install the downloaded .deb package.
 
 ```sh
@@ -127,6 +119,7 @@ issue or PR if you notice any problems!
 
 If you want to test locally, you should be able to run
 [build_ghostty_debian.sh](https://github.com/dariogriffo/ghostty-debian/blob/main/build_ghostty_debian.sh)
+or [build_ghostty_ubuntu.sh](https://github.com/dariogriffo/ghostty-debian/blob/main/build_ghostty_ubuntu.sh)
 on your own system, only requirement is docker.
 
 ## Roadmap
